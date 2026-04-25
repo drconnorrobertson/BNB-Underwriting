@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BNB Accelerator - Deal Underwriting</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    #appRoot {
+      display: none;
+    }
+
+    #appRoot.active {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .top {
+      background: #0D1117;
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      flex-wrap: wrap;
+    }
+
+    .top-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex: 0 0 auto;
+    }
+
+    .brand-logo {
+      height: 40px;
+      width: auto;
+    }
+
+    .brand-text {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .brand-text span {
+      color: #999;
+      font-weight: 400;
+    }
+
+    .top-nav {
+      display: flex;
+      gap: 3px;
+      flex: 1;
+      min-width: 400px;
+      overflow-x: auto;
+    }
+
+    .nav-tab {
+      padding: 6px 12px;
+      background: #1C2128;
+      border: none;
+      color: #e0e0e0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .nav-tab:hover {
+      background: #262d34;
+      color: white;
+    }
+
+    .nav-tab.active {
+      background: #238636;
+      color: white;
+    }
+
+    .nav-tab .pill {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 11px;
+      margin-left: 4px;
+      font-weight: 600;
+    }
+
+    .nav-tab.active .pill {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .top-right {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex: 0 0 auto;
+    }
+
+    .api-pill {
+      background: #1C2128;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #b0b0b0;
+      border-right: 1px solid #333;
+      padding-right: 12px;
+    }
+
+    .api-pill span {
+      margin-right: 8px;
+      color: #e0e0e0;
+      font-weight: 500;
+    }
+
+    .cron-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: #b0b0b0;
+      padding: 0 8px;
+    }
+
+    .cron-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #31a24c;
+    }
+
+    .btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .btn-primary {
+      background: #238636;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #2ea043;
+    }
+
+    .btn-secondary {
+      background: #1C2128;
+      color: #e0e0e0;
+      border: 1px solid #333;
+    }
+
+    .btn-secondary:hover {
+      background: #262d34;
+      color: white;
+    }
+
+    .btn-refresh {
+      background: transparent;
+      color: #b0b0b0;
+      border: 1px solid #333;
+      padding: 6px 10px;
+    }
+
+    .btn-refresh:hover {
+      color: white;
+      border-color: #555;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sb {
+      background: white;
+      padding: 12px 20px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      gap: 30px;
+      font-size: 13px;
+    }
+
+    .sb-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .sb-label {
+      color: #999;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .sb-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0D1117;
+    }
+
+    .eb {
+      background: #ffeaea;
+      border-bottom: 1px solid #ffcccc;
+      color: #c41e3a;
+      padding: 10px 20px;
+      font-size: 13px;
+      display: none;
+    }
+
+    .eb.active {
+      display: block;
+    }
+
+    .views-container {
+      flex: 1;
+      overflow: auto;
+      background: #f5f5f5;
+    }
+
+    .view {
+      display: none;
+      padding: 20px;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .toolbar {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-input {
+      flex: 0 1 250px;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #238636;
+      box-shadow: 0 0 0 3px rgba(35, 134, 54, 0.1);
+    }
+
+    .filter-dropdown {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      background: white;
+      cursor: pointer;
+    }
+
+    .filter-dropdown:focus {
+      outline: none;
+      border-color: #238636;
+    }
+
+    #propGrid, #savedSearchesGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .prop-card {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: all 0.2s;
+      border-left: 4px solid #ddd;
+    }
+
+    .prop-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transform: translateY(-2px);
+    }
+
+    .prop-card.good {
+      border-left-color: #31a24c;
+    }
+
+    .prop-card.needs-offer {
+      border-left-color: #ffa500;
+    }
+
+    .prop-card.dqd {
+      border-left-color: #c41e3a;
+    }
+
+    .prop-card-header {
+      padding: 12px;
+      background: #f9f9f9;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .prop-address {
+      font-weight: 600;
+      color: #0D1117;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .prop-city {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .prop-card-body {
+      padding: 12px;
+      font-size: 13px;
+    }
+
+    .prop-field {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .prop-field:last-child {
+      margin-bottom: 0;
+      border-bottom: none;
+    }
+
+    .prop-label {
+      color: #999;
+      font-size: 12px;
+    }
+
+    .prop-value {
+      font-weight: 600;
+      color: #0D1117;
+    }
+
+    #panelOverlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 1000;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    #panelOverlay.active {
+      display: flex;
+    }
+
+    .detail-panel {
+      background: white;
+      width: 450px;
+      height: 100%;
+      overflow-y: auto;
+      box-shadow: -2px 0 8px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-head {
+      padding: 20px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .panel-close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .panel-close:hover {
+      color: #0D1117;
+    }
+
+    .panelAddr {
+      font-weight: 700;
+      font-size: 18px;
+      color: #0D1117;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .panelSub {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .panelBody {
+      padding: 20px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .panel-section {
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .panel-section:last-child {
+      border-bottom: none;
+    }
+
+    .panel-section-title {
+      font-weight: 600;
+      font-size: 13px;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .panel-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .panel-item-label {
+      color: #666;
+    }
+
+    .panel-item-value {
+      font-weight: 600;
+      color: #0D1117;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 8px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0D1117;
+      margin-bottom: 20px;
+    }
+
+    .modal-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #0D1117;
+    }
+
+    .form-input {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #238636;
+      box-shadow: 0 0 0 3px rgba(35, 134, 54, 0.1);
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+
+    .kanban-row {
+      display: flex;
+      gap: 15px;
+      overflow-x: auto;
+      padding-bottom: 15px;
+    }
+
+    .kanban-col {
+      flex: 0 0 320px;
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+      min-height: 400px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .kanban-header {
+      font-weight: 600;
+      font-size: 13px;
+      color: #0D1117;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #238636;
+    }
+
+    .kanban-cards {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .kanban-card {
+      background: #f9f9f9;
+      padding: 12px;
+      border-radius: 6px;
+      cursor: grab;
+      border-left: 3px solid #238636;
+      transition: all 0.2s;
+    }
+
+    .kanban-card:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .kanban-card-title {
+      font-weight: 600;
+      font-size: 13px;
+      color: #0D1117;
+      margin-bottom: 6px;
+    }
+
+    .kanban-card-info {
+      font-size: 12px;
+      color: #666;
+    }
+
+    #mapContainer {
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .dq-tracker {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .dq-item {
+      padding: 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+    }
+
+    .dq-item-info {
+      flex: 1;
+    }
+
+    .dq-address {
+      font-weight: 600;
+      color: #0D1117;
+      margin-bottom: 6px;
+    }
+
+    .dq-reason {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 6px;
+    }
+
+    .dq-date {
+      font-size: 11px;
+      color: #999;
+    }
+
+    .dq-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .dq-actions .btn {
+      padding: 4px 10px;
+      font-size: 12px;
+    }
+
+    #dqRulesPanel {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 30px;
+    }
+
+    .rules-list {
+      list-style: none;
+    }
+
+    .rules-list li {
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .rule-toggle {
+      width: 40px;
+      height: 24px;
+      background: #ddd;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.2s;
+    }
+
+    .rule-toggle.active {
+      background: #238636;
+    }
+
+    .rule-toggle::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: left 0.2s;
+    }
+
+    .rule-toggle.active::after {
+      left: 18px;
+    }
+
+    .heading-h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0D1117;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div id="appRoot"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/seeddata.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/amenities.js"></script>
+  <script src="js/buybox.js"></script>
+  <script src="js/pipeline.js"></script>
+  <script src="js/financing.js"></script>
+  <script src="js/comparison.js"></script>
+  <script src="js/mapview.js"></script>
+  <script src="js/analysis.js"></script>
+  <script src="js/views.js"></script>
+
+  <script>
+    function bootApp() {
+      const appRoot = document.getElementById('appRoot');
+
+      appRoot.innerHTML = `
+        <!-- TOPBAR -->
+        <div class="top">
+          <div class="top-left">
+            <img src="https://bnbaccelerator.com/wp-content/uploads/2025/03/BNB_Accelerator_logo-150x77.png" alt="BNB Accelerator" class="brand-logo">
+            <div class="brand-text">
+              BNB Accelerator <span>|</span> Deal Underwriting - All Markets
+            </div>
+          </div>
+
+          <div class="top-nav">
+            <button class="nav-tab active" id="nav_all" onclick="showView('all')">
+              All <span class="pill" id="pill_all">0</span>
+            </button>
+            <button class="nav-tab" id="nav_good" onclick="showView('good')">
+              Good <span class="pill" id="pill_good">0</span>
+            </button>
+            <button class="nav-tab" id="nav_offer" onclick="showView('offer')">
+              Offer <span class="pill" id="pill_offer">0</span>
+            </button>
+            <button class="nav-tab" id="nav_dq" onclick="showView('dq')">
+              DQ'd <span class="pill" id="pill_dq">0</span>
+            </button>
+            <button class="nav-tab" id="nav_pipeline" onclick="showView('pipeline')">
+              Pipeline
+            </button>
+            <button class="nav-tab" id="nav_map" onclick="showView('map')">
+              Map
+            </button>
+            <button class="nav-tab" id="nav_compare" onclick="showView('compare')">
+              Compare
+            </button>
+            <button class="nav-tab" id="nav_portfolio" onclick="showView('portfolio')">
+              Portfolio
+            </button>
+            <button class="nav-tab" id="nav_searches" onclick="showView('searches')">
+              Searches
+            </button>
+            <button class="nav-tab" id="nav_clients" onclick="showView('clients')">
+              Clients
+            </button>
+          </div>
+
+          <div class="top-right">
+            <div class="api-pill">
+              <span id="apiCalls">0</span> calls / \$<span id="apiSpent">0</span> / \$<span id="apiBalance">100</span>
+            </div>
+            <div class="cron-status">
+              <div class="cron-dot"></div>
+              <span id="cronStatus">Ready</span>
+            </div>
+            <button class="btn btn-refresh" onclick="refreshData()">Refresh</button>
+            <button class="btn btn-primary" onclick="openBuyBoxModal()">+ New Buy Box</button>
+            <button class="btn btn-secondary" onclick="logout()">Logout</button>
+          </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main">
+          <div class="eb" id="errorBar"></div>
+
+          <div class="views-container">
+            <!-- ALL PROPERTIES VIEW -->
+            <div class="view active" id="all">
+              <div class="sb">
+                <div class="sb-item">
+                  <span class="sb-label">Properties</span>
+                  <span class="sb-value" id="statProps">0</span>
+                </div>
+                <div class="sb-item">
+                  <span class="sb-label">Good Deals</span>
+                  <span class="sb-value" id="statGood">0</span>
+                </div>
+                <div class="sb-item">
+                  <span class="sb-label">Needs Offer</span>
+                  <span class="sb-value" id="statOffer">0</span>
+                </div>
+                <div class="sb-item">
+                  <span class="sb-label">DQ'd</span>
+                  <span class="sb-value" id="statDQ">0</span>
+                </div>
+                <div class="sb-item">
+                  <span class="sb-label">Pending</span>
+                  <span class="sb-value" id="statPending">0</span>
+                </div>
+                <div class="sb-item">
+                  <span class="sb-label">AirROI Calls</span>
+                  <span class="sb-value" id="statAirROI">0</span>
+                </div>
+              </div>
+
+              <div style="padding: 20px;">
+                <div class="toolbar">
+                  <input type="text" class="search-input" id="searchInput" placeholder="Search address...">
+                  <select class="filter-dropdown" id="searchFilter">
+                    <option value="">All Markets</option>
+                  </select>
+                  <select class="filter-dropdown" id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="good">Good Deal</option>
+                    <option value="needs-offer">Needs Offer</option>
+                    <option value="dqd">DQ'd</option>
+                  </select>
+                  <select class="filter-dropdown" id="bedsFilter">
+                    <option value="">All Beds</option>
+                    <option value="1">1 Bed</option>
+                    <option value="2">2 Beds</option>
+                    <option value="3">3 Beds</option>
+                    <option value="4">4+ Beds</option>
+                  </select>
+                  <select class="filter-dropdown" id="sortBy">
+                    <option value="date-desc">Newest First</option>
+                    <option value="date-asc">Oldest First</option>
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="price-desc">Price: High to Low</option>
+                    <option value="roi-desc">Best ROI</option>
+                  </select>
+                </div>
+                <div id="propGrid"></div>
+              </div>
+            </div>
+
+            <!-- GOOD DEALS VIEW -->
+            <div class="view" id="good">
+              <div style="padding: 20px;">
+                <h2 class="heading-h2">Good Deals</h2>
+                <div id="propGrid"></div>
+              </div>
+            </div>
+
+            <!-- NEEDS OFFER VIEW -->
+            <div class="view" id="offer">
+              <div style="padding: 20px;">
+                <h2 class="heading-h2">Needs Offer</h2>
+                <div id="propGrid"></div>
+              </div>
+            </div>
+
+            <!-- DQ TRACKER VIEW -->
+            <div class="view" id="dq">
+              <div style="padding: 20px;">
+                <h2 class="heading-h2">DQ Tracker</h2>
+                <div id="dqContent" class="dq-tracker"></div>
+              </div>
+            </div>
+
+            <!-- PIPELINE/KANBAN VIEW -->
+            <div class="view" id="pipeline">
+              <div style="padding: 20px;">
+                <h2 class="heading-h2">Pipeline</h2>
+                <div id="kanbanBoard" class="kanban-row"></div>
+              </div>
+            </div>
+
+            <!-- MAP VIEW -->
+            <div class="view" id="map">
+              <div style="padding: 20px;">
+                <h2 class="heading-h2">Map View</h2>
+                <div id="mapContainer" style="height:600px;border-radius:10px;"></div>
+              </div>
+            </div>
+
+            <!-- COMPARE VIEW -->
+            <div class="view" id="compare">
+              <div style="padding: 20px;">
+                <h2 class="heading-h2">Compare Properties</h2>
+                <div id="compareContent"></div>
+              </div>
+            </div>
+
+            <!-- PORTFOLIO VIEW -->
+            <div class="view" id="portfolio">
+              <div style="padding: 20px;">
+                <h2 class="heading-h2">Portfolio Rollup</h2>
+                <div id="portfolioContent"></div>
+              </div>
+            </div>
+
+            <!-- SEARCHES/BUY BOXES VIEW -->
+            <div class="view" id="searches">
+              <div style="padding: 20px;">
+                <h2 class="heading-h2">Saved Searches / Buy Boxes</h2>
+                <button class="btn btn-primary" onclick="openBuyBoxModal()" style="margin-bottom: 20px;">+ New Buy Box</button>
+                <div id="savedSearchesGrid"></div>
+                <div id="dqRulesPanel"></div>
+              </div>
+            </div>
+
+            <!-- CLIENTS VIEW -->
+            <div class="view" id="clients">
+              <div style="padding: 20px;">
+                <h2 class="heading-h2">Client Management</h2>
+                <div id="clientsContent"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // DETAIL PANEL OVERLAY
+      const panelOverlay = document.createElement('div');
+      panelOverlay.id = 'panelOverlay';
+      panelOverlay.innerHTML = \`
+        <div class="detail-panel">
+          <div class="panel-head">
+            <div>
+              <div class="panelAddr" id="panelAddr"></div>
+              <div class="panelSub" id="panelSub"></div>
+            </div>
+            <button class="panel-close" onclick="closePanel()">✕</button>
+          </div>
+          <div class="panelBody" id="panelBody"></div>
+        </div>
+      \`;
+      document.body.appendChild(panelOverlay);
+
+      // DQ MODAL
+      const dqModal = document.createElement('div');
+      dqModal.id = 'dqModal';
+      dqModal.className = 'modal';
+      dqModal.innerHTML = \`
+        <div class="modal-content">
+          <div class="modal-header">Disqualify Property</div>
+          <div class="modal-form">
+            <div class="form-group">
+              <label class="form-label">Reason for DQ</label>
+              <textarea id="dqReason" class="form-input" style="height: 100px; resize: vertical;"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <select id="dqCategory" class="form-input">
+                <option value="">Select Category</option>
+                <option value="inspection">Inspection Issues</option>
+                <option value="valuation">Valuation Too Low</option>
+                <option value="market">Market Concerns</option>
+                <option value="owner">Owner Issues</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-buttons">
+            <button class="btn btn-secondary" onclick="closeDQModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="submitDQ()">Disqualify</button>
+          </div>
+        </div>
+      \`;
+      document.body.appendChild(dqModal);
+
+      // BUY BOX MODAL
+      const buyBoxModal = document.createElement('div');
+      buyBoxModal.id = 'buyBoxModal';
+      buyBoxModal.className = 'modal';
+      buyBoxModal.innerHTML = \`
+        <div class="modal-content">
+          <div class="modal-header">New Buy Box Search</div>
+          <div class="modal-form">
+            <div class="form-group">
+              <label class="form-label">Buy Box Name</label>
+              <input type="text" id="bbName" class="form-input" placeholder="e.g., Denver Single Family">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="form-group">
+                <label class="form-label">City</label>
+                <input type="text" id="bbCity" class="form-input">
+              </div>
+              <div class="form-group">
+                <label class="form-label">State</label>
+                <input type="text" id="bbState" class="form-input" placeholder="CO">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Zip Code</label>
+              <input type="text" id="bbZip" class="form-input">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="form-group">
+                <label class="form-label">Price Min</label>
+                <input type="number" id="bbPriceMin" class="form-input" placeholder="0">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Price Max</label>
+                <input type="number" id="bbPriceMax" class="form-input" placeholder="999999">
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="form-group">
+                <label class="form-label">Min Beds</label>
+                <input type="number" id="bbBedsMin" class="form-input" placeholder="1">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Max Beds</label>
+                <input type="number" id="bbBedsMax" class="form-input" placeholder="5">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Max HOA</label>
+              <input type="number" id="bbMaxHoa" class="form-input" placeholder="500">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="form-group">
+                <label class="form-label">Latitude</label>
+                <input type="number" id="bbLat" class="form-input" step="0.0001">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Longitude</label>
+                <input type="number" id="bbLng" class="form-input" step="0.0001">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tags (comma-separated)</label>
+              <input type="text" id="bbTags" class="form-input" placeholder="investment, turnkey">
+            </div>
+          </div>
+          <div class="modal-buttons">
+            <button class="btn btn-secondary" onclick="closeBuyBoxModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="handleSaveBuyBox()">Save Buy Box</button>
+          </div>
+        </div>
+      \`;
+      document.body.appendChild(buyBoxModal);
+
+      // Initialize the app
+      appRoot.classList.add('active');
+
+      // Initialize each module
+      if (window.initBuyBox) initBuyBox();
+      if (window.initSeedData) initSeedData();
+      if (window.populateSearchFilter) populateSearchFilter();
+      if (window.updateApiStats) updateApiStats();
+      if (window.runPrelimAll) runPrelimAll();
+      if (window.showOnboarding) showOnboarding();
+      if (window.renderSavedSearches) renderSavedSearches();
+      if (window.renderDQRulesPanel) renderDQRulesPanel();
+      if (window.renderClientManagerView) renderClientManagerView();
+    }
+
+    // Navigation and view functions
+    function showView(viewId) {
+      // Hide all views
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+
+      // Show selected view
+      const view = document.getElementById(viewId);
+      if (view) {
+        view.classList.add('active');
+      }
+
+      const navTab = document.getElementById('nav_' + viewId);
+      if (navTab) {
+        navTab.classList.add('active');
+      }
+
+      // Trigger view-specific init
+      if (window.onViewChanged) window.onViewChanged(viewId);
+    }
+
+    function closePanel() {
+      document.getElementById('panelOverlay').classList.remove('active');
+    }
+
+    function openDQModal(propId) {
+      document.getElementById('dqModal').classList.add('active');
+      if (window.currentPropForDQ) window.currentPropForDQ = propId;
+    }
+
+    function closeDQModal() {
+      document.getElementById('dqModal').classList.remove('active');
+    }
+
+    function submitDQ() {
+      if (window.handleDQSubmit) window.handleDQSubmit();
+      closeDQModal();
+    }
+
+    function openBuyBoxModal() {
+      document.getElementById('buyBoxModal').classList.remove('active');
+      document.getElementById('bbName').value = '';
+      document.getElementById('bbCity').value = '';
+      document.getElementById('bbState').value = '';
+      document.getElementById('bbZip').value = '';
+      document.getElementById('bbPriceMin').value = '';
+      document.getElementById('bbPriceMax').value = '';
+      document.getElementById('bbBedsMin').value = '';
+      document.getElementById('bbBedsMax').value = '';
+      document.getElementById('bbMaxHoa').value = '';
+      document.getElementById('bbLat').value = '';
+      document.getElementById('bbLng').value = '';
+      document.getElementById('bbTags').value = '';
+      document.getElementById('buyBoxModal').classList.add('active');
+    }
+
+    function closeBuyBoxModal() {
+      document.getElementById('buyBoxModal').classList.remove('active');
+    }
+
+    function handleSaveBuyBox() {
+      if (window.saveBuyBoxFromModal) window.saveBuyBoxFromModal();
+      closeBuyBoxModal();
+    }
+
+    function refreshData() {
+      if (window.refreshAllData) window.refreshAllData();
+    }
+
+    function logout() {
+      if (window.performLogout) window.performLogout();
+    }
+
+    // Boot on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.isLoggedIn && window.isLoggedIn()) {
+        if (window.isClient && window.isClient()) {
+          if (window.bootClientView) window.bootClientView();
+        } else {
+          bootApp();
+        }
+      } else {
+        if (window.renderLoginScreen) window.renderLoginScreen();
+      }
+    });
+  </script>
+</body>
+</html>
