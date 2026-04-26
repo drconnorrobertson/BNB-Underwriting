@@ -1160,148 +1160,148 @@
     function bootDealView(dealId) {
       const appRoot = document.getElementById('appRoot');
       appRoot.classList.add('active');
-      
-      // Get property and analysis data
-      const prop = APP.props.find(p => p.propId === dealId);
+
+      // Find property across all search groups (APP.props is { searchId: [props] })
+      let prop = null;
+      const allPropsFlat = Object.values(APP.props).flat();
+      prop = allPropsFlat.find(p => p.id === dealId);
+
       if (!prop) {
-        appRoot.innerHTML = '<div style="padding: 20px; color: red;">Property not found.</div>';
+        appRoot.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#f5f5f5;font-family:'DM Sans',sans-serif">
+            <div style="text-align:center;padding:40px">
+              <img src="https://bnbaccelerator.com/wp-content/uploads/2025/03/BNB_Accelerator_logo-150x77.png" alt="BNB" style="height:50px;margin-bottom:20px"
+                   onerror="this.outerHTML='<div style=\\'font-size:28px;font-weight:700;color:#c9a227\\'>BNB Accelerator</div>'">
+              <h2 style="color:#0D1117;margin-bottom:10px">Deal Not Found</h2>
+              <p style="color:#666;font-size:14px">This deal link may have expired or the property data is no longer available.</p>
+              <a href="${window.location.pathname}" style="display:inline-block;margin-top:20px;padding:10px 24px;background:#238636;color:white;border-radius:6px;text-decoration:none;font-weight:500">Go to Dashboard</a>
+            </div>
+          </div>`;
         return;
       }
-      
-      const analysis = APP.analyses[dealId];
-      
-      // Format currency
-      const formatCurrency = (val) => {
-        if (!val && val !== 0) return 'N/A';
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
-      };
-      
-      // Format percentage
-      const formatPct = (val) => {
-        if (!val && val !== 0) return 'N/A';
-        return (val * 100).toFixed(1) + '%';
-      };
-      
-      // Build HTML
-      const photoUrl = prop.photoUrl || 'https://via.placeholder.com/600x400?text=No+Photo';
-      const beds = prop.beds || 'N/A';
-      const baths = prop.baths || 'N/A';
-      const sqft = prop.sqft || 'N/A';
-      const address = prop.address || 'Unknown Address';
-      const price = formatCurrency(prop.price);
-      
+
+      const a = APP.analyses[dealId];
+      const tier = a ? a.better : (prop.prelim ? prop.prelim.prelim_tier : null);
+      const comply = typeof getCompliance === 'function' ? getCompliance(prop.state) : null;
+      const search = APP.searches.find(s => s.id === prop.searchId);
+
+      const photoUrl = prop.photo || 'https://via.placeholder.com/800x400?text=Property+Photo';
+      const cocVal = tier ? tier.coc : (prop.prelim ? prop.prelim.prelim_coc : null);
+      const revVal = tier ? tier.revenue : (prop.prelim ? prop.prelim.prelim_revenue : null);
+      const isEstimate = !a && !!prop.prelim;
+      const est = isEstimate ? ' (est.)' : '';
+
       let metricsHtml = '';
-      if (analysis) {
-        metricsHtml = `
-          <div class="deal-metrics">
-            <div class="metric-row">
-              <div class="metric">
-                <div class="metric-label">Cash on Cash Return</div>
-                <div class="metric-value">${formatPct(analysis.coc)}</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">Annual Revenue</div>
-                <div class="metric-value">${formatCurrency(analysis.annualRevenue)}</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">Monthly Cash Flow</div>
-                <div class="metric-value">${formatCurrency(analysis.monthlyFlow)}</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">Total Cash Needed</div>
-                <div class="metric-value">${formatCurrency(analysis.totalCashNeeded)}</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">ROI</div>
-                <div class="metric-value">${formatPct(analysis.roi)}</div>
-              </div>
-            </div>
-          </div>
-        `;
+      if (tier) {
+        const metricItems = [
+          ['List Price', fm(prop.listPrice), '#0D1117'],
+          ['Annual Revenue' + est, fm(tier.revenue || revVal), '#238636'],
+          ['Cash on Cash' + est, fpc(tier.coc || cocVal), (tier.coc || cocVal) >= 10 ? '#238636' : (tier.coc || cocVal) >= 7 ? '#ffa500' : '#c41e3a'],
+          ['Monthly Cash Flow' + est, fm(tier.ncfMo), tier.ncfMo >= 0 ? '#238636' : '#c41e3a'],
+          ['Total Cash Needed', fm(tier.totalCash), '#0D1117'],
+          ['Year 1 ROI' + est, fpc(tier.roi), '#c9a227'],
+        ];
+        metricsHtml = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:30px">' +
+          metricItems.map(([label, val, color]) =>
+            '<div style="background:#f9f9f9;padding:16px;border-radius:8px;text-align:center">' +
+              '<div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">' + label + '</div>' +
+              '<div style="font-size:22px;font-weight:700;color:' + color + '">' + val + '</div>' +
+            '</div>'
+          ).join('') +
+          '</div>';
       }
-      
+
+      let investHtml = '';
+      if (tier) {
+        const rows = [
+          ['Down Payment (10%)', fm(tier.down)],
+          ['Closing Costs (3%)', fm(tier.cc)],
+          ['Enhancement Budget', fm(tier.amenCost || 0)],
+          ['<strong>Total Cash to Close</strong>', '<strong>' + fm(tier.totalCash) + '</strong>'],
+          ['---', '---'],
+          ['Gross Monthly Income', fm(tier.gmiMo)],
+          ['Fixed Expenses / mo', '-' + fm(tier.fixedTotal)],
+          ['Variable Expenses / mo', '-' + fm(tier.variableTotal)],
+          ['<strong>Net Monthly Cash Flow</strong>', '<strong style="color:' + (tier.ncfMo >= 0 ? '#238636' : '#c41e3a') + '">' + fm(tier.ncfMo) + '</strong>'],
+          ['---', '---'],
+          ['Net Annual Cash Flow', fm(tier.ncfYr)],
+          ['Year 1 Tax Savings (bonus dep.)', fm(tier.taxSav)],
+          ['<strong>Year 1 Total Return</strong>', '<strong style="color:#238636">' + fm(tier.yr1) + '</strong>'],
+        ];
+        investHtml = '<div style="background:#f9f9f9;padding:20px;border-radius:8px;margin-bottom:30px">' +
+          '<h3 style="font-size:18px;margin:0 0 15px;color:#0D1117">Investment Summary</h3>' +
+          rows.map(([k, v]) => {
+            if (k === '---') return '<div style="border-top:1px solid #e0e0e0;margin:8px 0"></div>';
+            return '<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px">' +
+              '<span style="color:#666">' + k + '</span>' +
+              '<span style="color:#0D1117">' + v + '</span></div>';
+          }).join('') +
+          '</div>';
+      }
+
+      let revenueHtml = '';
+      if (tier) {
+        revenueHtml = '<div style="background:#f9f9f9;padding:20px;border-radius:8px;margin-bottom:30px">' +
+          '<h3 style="font-size:18px;margin:0 0 15px;color:#0D1117">Revenue Projections</h3>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">' +
+            '<div><div style="font-size:11px;color:#999;text-transform:uppercase">Avg Nightly Rate</div><div style="font-size:18px;font-weight:600;color:#0D1117">' + fm(tier.adr) + '</div></div>' +
+            '<div><div style="font-size:11px;color:#999;text-transform:uppercase">Occupancy</div><div style="font-size:18px;font-weight:600;color:#0D1117">' + fp(tier.occ) + '</div></div>' +
+            '<div><div style="font-size:11px;color:#999;text-transform:uppercase">Gross Annual Revenue</div><div style="font-size:18px;font-weight:600;color:#238636">' + fm(tier.garYr) + '</div></div>' +
+          '</div></div>';
+      }
+
+      let complianceHtml = '';
+      if (comply) {
+        complianceHtml = '<div style="background:#f9f9f9;padding:20px;border-radius:8px;margin-bottom:30px">' +
+          '<h3 style="font-size:18px;margin:0 0 15px;color:#0D1117">STR Compliance - ' + prop.state + '</h3>' +
+          '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
+            '<span style="font-size:20px">' + comply.icon + '</span>' +
+            '<span style="font-weight:600;font-size:14px">' + comply.label + '</span>' +
+          '</div>' +
+          '<p style="margin:0;color:#666;font-size:13px;line-height:1.6">' + comply.note + '</p>' +
+          (comply.reqs ? '<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px">' + comply.reqs.map(r => '<span style="display:inline-block;padding:3px 8px;background:#e8e8e8;border-radius:4px;font-size:11px;color:#555">' + r + '</span>').join('') + '</div>' : '') +
+          '</div>';
+      }
+
       appRoot.innerHTML = `
-        <div style="background: white; color: #333; height: 100vh; overflow-y: auto; padding: 40px 20px;">
-          <div style="max-width: 900px; margin: 0 auto;">
-            <!-- BNB Accelerator Branding -->
-            <div style="text-align: center; margin-bottom: 30px; border-bottom: 1px solid #e0e0e0; padding-bottom: 20px;">
-              <img src="https://bnbaccelerator.com/wp-content/uploads/2025/03/BNB_Accelerator_logo-150x77.png" alt="BNB Accelerator" style="height: 40px; margin-bottom: 10px;">
-              <h1 style="font-size: 28px; margin: 10px 0; color: #0D1117;">Deal Summary</h1>
-              <p style="color: #666; font-size: 14px;">Prepared by BNB Accelerator</p>
-            </div>
-            
-            <!-- Property Photo -->
-            <div style="margin-bottom: 30px;">
-              <img src="${photoUrl}" alt="Property" style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px;">
-            </div>
-            
-            <!-- Property Info -->
-            <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-              <h2 style="font-size: 24px; margin: 0 0 10px 0; color: #0D1117;">${address}</h2>
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 20px; margin-top: 15px;">
-                <div>
-                  <div style="font-size: 12px; color: #666; text-transform: uppercase;">Beds</div>
-                  <div style="font-size: 20px; font-weight: 600; color: #0D1117;">${beds}</div>
-                </div>
-                <div>
-                  <div style="font-size: 12px; color: #666; text-transform: uppercase;">Baths</div>
-                  <div style="font-size: 20px; font-weight: 600; color: #0D1117;">${baths}</div>
-                </div>
-                <div>
-                  <div style="font-size: 12px; color: #666; text-transform: uppercase;">Sqft</div>
-                  <div style="font-size: 20px; font-weight: 600; color: #0D1117;">${sqft}</div>
-                </div>
-                <div>
-                  <div style="font-size: 12px; color: #666; text-transform: uppercase;">Price</div>
-                  <div style="font-size: 20px; font-weight: 600; color: #0D1117;">${price}</div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Key Metrics -->
-            ${metricsHtml}
-            
-            <!-- Investment Summary -->
-            ${analysis ? `
-              <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-                <h3 style="font-size: 18px; margin: 0 0 15px 0; color: #0D1117;">Investment Summary</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                  <div>
-                    <div style="font-size: 12px; color: #666; text-transform: uppercase;">Annual Income</div>
-                    <div style="font-size: 18px; font-weight: 600; color: #238636;">${formatCurrency(analysis.annualRevenue)}</div>
-                  </div>
-                  <div>
-                    <div style="font-size: 12px; color: #666; text-transform: uppercase;">Annual Expenses</div>
-                    <div style="font-size: 18px; font-weight: 600; color: #238636;">${formatCurrency(analysis.annualExpenses || 0)}</div>
-                  </div>
-                  <div>
-                    <div style="font-size: 12px; color: #666; text-transform: uppercase;">Net Operating Income</div>
-                    <div style="font-size: 18px; font-weight: 600; color: #238636;">${formatCurrency(analysis.noi || 0)}</div>
-                  </div>
-                  <div>
-                    <div style="font-size: 12px; color: #666; text-transform: uppercase;">Cap Rate</div>
-                    <div style="font-size: 18px; font-weight: 600; color: #238636;">${formatPct(analysis.capRate || 0)}</div>
-                  </div>
-                </div>
-              </div>
-            ` : ''}
-            
-            <!-- STR Compliance (if applicable) -->
-            ${prop.strCompliance ? `
-              <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-                <h3 style="font-size: 18px; margin: 0 0 15px 0; color: #0D1117;">STR Compliance</h3>
-                <p style="margin: 0; color: #666;">${prop.strCompliance}</p>
-              </div>
-            ` : ''}
-            
-            <!-- Footer -->
-            <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #999; font-size: 12px;">
-              <p>This deal summary was prepared by BNB Accelerator. For questions or additional information, please contact your investment advisor.</p>
+        <div style="background:#f5f5f5;min-height:100vh;font-family:'DM Sans',sans-serif">
+          <div style="background:#0D1117;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:12px">
+              <img src="https://bnbaccelerator.com/wp-content/uploads/2025/03/BNB_Accelerator_logo-150x77.png" alt="BNB" style="height:30px;filter:brightness(10)"
+                   onerror="this.outerHTML='<span style=\\'font-weight:700;font-size:15px;color:#c9a227\\'>BNB Accelerator</span>'">
+              <span style="color:rgba(255,255,255,.4);font-size:12px">|</span>
+              <span style="color:rgba(255,255,255,.6);font-size:13px">Deal Summary</span>
             </div>
           </div>
-        </div>
-      `;
+          <div style="max-width:900px;margin:0 auto;padding:30px 20px">
+            <div style="margin-bottom:30px">
+              <img src="${photoUrl}" alt="Property" style="width:100%;max-height:400px;object-fit:cover;border-radius:8px"
+                   onerror="this.style.display='none'">
+            </div>
+            <div style="background:white;padding:24px;border-radius:8px;margin-bottom:30px;box-shadow:0 1px 3px rgba(0,0,0,.1)">
+              <h1 style="font-size:24px;margin:0 0 6px;color:#0D1117">${prop.address}</h1>
+              <p style="color:#666;margin:0 0 12px;font-size:14px">${prop.city}, ${prop.state} ${prop.zip}</p>
+              <div style="display:flex;gap:20px;flex-wrap:wrap;font-size:13px;color:#555">
+                <span>${prop.beds} bd</span>
+                <span>${prop.baths} ba</span>
+                <span>${prop.sqft ? prop.sqft.toLocaleString() : '?'} sqft</span>
+                ${prop.yearBuilt ? '<span>Built ' + prop.yearBuilt + '</span>' : ''}
+                ${prop.dom ? '<span>' + prop.dom + ' days on market</span>' : ''}
+              </div>
+            </div>
+            ${metricsHtml}
+            ${investHtml}
+            ${revenueHtml}
+            ${complianceHtml}
+            ${isEstimate ? '<div style="background:#fff3cd;padding:12px 16px;border-radius:6px;margin-bottom:30px;font-size:12px;color:#856404;border:1px solid #ffc107">These are preliminary estimates based on market benchmarks. Contact your BNB Accelerator advisor for confirmed AirROI analysis.</div>' : ''}
+            <div style="text-align:center;padding-top:30px;border-top:1px solid #e0e0e0;color:#999;font-size:12px">
+              <p>Prepared by BNB Accelerator &middot; Deal Underwriting Platform</p>
+              <p style="margin-top:4px">For questions, contact your investment advisor.</p>
+            </div>
+          </div>
+        </div>`;
     }
+
 
     document.addEventListener('DOMContentLoaded', () => {
       // Check for shareable deal link

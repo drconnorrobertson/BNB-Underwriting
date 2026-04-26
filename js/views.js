@@ -182,6 +182,7 @@ function openPropPanel(propId) {
     ${prop.dqd?'<span class="tag rd" style="align-self:center">DQ\'d</span>':`<button class="btn btn-rd" onclick="dqProp('${propId}')">DQ + Send Memo</button>`}
     ${APP.shortlist.includes(propId)?`<button class="btn btn-out" onclick="toggleShortlist('${propId}');openPropPanel('${propId}')">★ Remove Shortlist</button>`:`<button class="btn btn-out" onclick="toggleShortlist('${propId}');openPropPanel('${propId}')">☆ Add to Shortlist</button>`}
     <button class="btn btn-ghost" onclick="window.print()">Print</button>
+    <button class="btn btn-out" onclick="shareDeal('${propId}')">🔗 Share Deal</button>
   </div>`;
 
   if (a) {
