@@ -908,28 +908,3 @@ html, body {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Overlays must not intercept touch when hidden (display:none handles this,
-   but pointer-events:none is belt-and-suspenders for transition states) */
-#panelOverlay {
-  pointer-events: none;
-}
-#panelOverlay.active, #panelOverlay.open {
-  pointer-events: auto;
-}
-
-.modal {
-  pointer-events: none;
-}
-.modal.active, .modal.open {
-  pointer-events: auto;
-}
-
-/* Ensure cards are interactive and visible */
-.pcard, .prop-card {
-  cursor: pointer;
-  pointer-events: auto !important;
-}
-.pcard:hover, .prop-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
