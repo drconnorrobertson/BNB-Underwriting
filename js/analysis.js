@@ -20,7 +20,8 @@ function runPrelimAll() {
     const search = APP.searches.find(s => s.id === sid);
     if (!search) return;
     props.forEach(prop => {
-      if (!prop || prop.beds < 1) return;
+      if (!prop) return;
+      if (prop.beds < 1) prop.beds = 3; // default to 3 beds if missing
       const screening = prelimScreen(prop, search);
       prop.prelim = screening;
       // Apply auto-DQ rules if buybox module loaded
