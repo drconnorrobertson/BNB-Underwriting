@@ -7,7 +7,7 @@ function getAllProps() {
   const all = Object.values(APP.props).flat();
   const minBeds = APP.filterMinBeds||0;
   return all
-    .filter(p=>p&&p.beds>=minBeds&&p.listPrice>=300000&&p.listPrice<=1000000)
+    .filter(p=>p&&p.beds>=minBeds&&p.listPrice>=(typeof MIN_PRICE!=='undefined'?MIN_PRICE:400000)&&p.listPrice<=1000000)
     .map(p=>{
       const a=APP.analyses[p.id];
       const dq=APP.dqLog.find(d=>d.propId===p.id);
