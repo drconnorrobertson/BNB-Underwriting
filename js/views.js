@@ -59,7 +59,9 @@ function updateNavCounts() {
   const dq=APP.dqLog.length;
   const sl=APP.shortlist.length;
   [['nc_good',good],['nc_offer',offer],['nc_dq',dq],['nc_sl',sl]].forEach(([id,v])=>{const e=G(id);if(e)e.textContent=v;});
-  [['sTot',all.length],['sGood',good],['sOff',offer],['sDq',dq],['sPend',all.filter(p=>p.status==='unscored'||p.status==='prelim').length]].forEach(([id,v])=>{const e=G(id);if(e)e.textContent=v;});
+  [['statProps',all.length],['statGood',good],['statOffer',offer],['statDQ',dq],['statPending',all.filter(p=>p.status==='unscored'||p.status==='prelim').length],['statAirROI',APP.apiCalls||0]].forEach(([id,v])=>{const e=G(id);if(e)e.textContent=v;});
+  // Also update nav pills
+  [['pill_all',all.length],['pill_good',good],['pill_offer',offer],['pill_dq',dq]].forEach(([id,v])=>{const e=G(id);if(e)e.textContent=v;});
 }
 
 function renderPropGrid() {
