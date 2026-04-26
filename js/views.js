@@ -63,7 +63,7 @@ function updateNavCounts() {
 }
 
 function renderPropGrid() {
-  const all=getAllProps(), sorted=sortProps(all), filtered=filterProps(sorted);
+  const all=getAllProps().filter(p => p.listPrice >= (typeof MIN_PRICE !== "undefined" ? MIN_PRICE : 0)), sorted=sortProps(all), filtered=filterProps(sorted);
   const container=G('propGrid'); if(!container) return;
   updateNavCounts();
   if(!filtered.length){

@@ -6,7 +6,7 @@ const RAPIDAPI_KEY = 'ca56118692msh934ff5ce7b4982fp181ad8jsn3901adb598e3';
 const PROXY_BASE   = '';
 
 // ── CONSTANTS ──────────────────────────────────────────────────────────────────
-const DOWN=0.10, RATE=6.0, TERM=30, COC_GOOD=10, COC_OFFER=7, MAX_ALL_IN=200000;
+const DOWN=0.10, RATE=6.0, TERM=30, COC_GOOD=10, COC_OFFER=7, MAX_ALL_IN=200000, MIN_PRICE=400000;
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 // ── 49-MARKET SEARCH CONFIG (legacy defaults, migrated to buyBoxes on first load) ──
