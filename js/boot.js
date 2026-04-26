@@ -91,24 +91,24 @@
 
               <div style="padding: 20px;">
                 <div class="toolbar">
-                  <input type="text" class="search-input" id="searchInput" placeholder="Search address...">
-                  <select class="filter-dropdown" id="searchFilter">
+                  <input type="text" class="search-input" id="searchInput" placeholder="Search address..." onkeyup="APP.searchQuery=this.value;renderPropGrid();">
+                  <select class="filter-dropdown" id="searchFilter" onchange="APP.filterSearchId=this.value||null;renderPropGrid();">
                     <option value="">All Markets</option>
                   </select>
-                  <select class="filter-dropdown" id="statusFilter">
+                  <select class="filter-dropdown" id="statusFilter" onchange="APP.filterStatus=this.value||'all';renderPropGrid();">
                     <option value="">All Status</option>
                     <option value="good">Good Deal</option>
                     <option value="needs-offer">Needs Offer</option>
                     <option value="dqd">DQ'd</option>
                   </select>
-                  <select class="filter-dropdown" id="bedsFilter">
+                  <select class="filter-dropdown" id="bedsFilter" onchange="APP.filterMinBeds=parseInt(this.value)||0;renderPropGrid();">
                     <option value="">All Beds</option>
-                    <option value="1">1 Bed</option>
-                    <option value="2">2 Beds</option>
+                    
+                    
                     <option value="3">3 Beds</option>
                     <option value="4">4+ Beds</option>
                   </select>
-                  <select class="filter-dropdown" id="sortBy">
+                  <select class="filter-dropdown" id="sortBy" onchange="APP.sortKey=this.value.split('-')[0];APP.sortDir=this.value.split('-')[1]||'desc';renderPropGrid();">
                     <option value="date-desc">Newest First</option>
                     <option value="date-asc">Oldest First</option>
                     <option value="price-asc">Price: Low to High</option>
