@@ -230,7 +230,10 @@ function closePanel() { G('panelOverlay')?.classList.remove('open'); }
 
 // ── SCENARIO CARDS ──────────────────────────────────────────────────────────────
 function renderScenarios(G_t,B_t,X_t) {
-  const sc=(t,cls,lbl)=>`<div class="sc-card ${cls}">
+  const sc=(t,cls,lbl)=>{
+    const amenList = t.amenityList ? t.amenityList.filter((v,i,a)=>a.indexOf(v)===i).slice(0, 8) : [];
+    const amenHtml = amenList.length ? '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bd)"><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--tx3);margin-bottom:4px">Included Amenities</div>' + amenList.map(a => '<div style="font-size:10px;color:var(--tx2);padding:1px 0">• ' + a + '</div>').join('') + (t.amenityList && t.amenityList.length > 8 ? '<div style="font-size:9px;color:var(--tx3)">+' + (t.amenityList.length - 8) + ' more</div>' : '') + '</div>' : '';
+    return `<div class="sc-card ${cls}">
     <div class="sc-tier">${lbl}</div>
     <div class="sc-rev">${fm(t.revenue)}</div><div class="sc-sub">Annual Revenue · p75: ${fmK(t.p75Rev)}</div>
     <div class="sc-rows">
@@ -240,10 +243,12 @@ function renderScenarios(G_t,B_t,X_t) {
       <div class="sc-r"><span class="sc-k">Monthly Expenses</span><span class="sc-v neg">${fm(t.totExpMo)}</span></div>
       <div class="sc-r"><span class="sc-k">Net CF/yr</span><span class="sc-v ${t.ncfYr>=0?'pos':'neg'}">${fm(t.ncfYr)}</span></div>
       <div class="sc-r"><span class="sc-k">Cash on Cash</span><span class="sc-v ${t.coc>=COC_GOOD?'pos':t.coc>=COC_OFFER?'gold':'neg'}">${fpc(t.coc)}</span></div>
-      <div class="sc-r"><span class="sc-k">Enhancement</span><span class="sc-v gold">${fm(t.amenCost)}</span></div>
+      <div class="sc-r"><span class="sc-k">Enhancement Cost</span><span class="sc-v gold">${fm(t.amenCost)}</span></div>
       <div class="sc-r"><span class="sc-k">Total Cash In</span><span class="sc-v blue">${fm(t.totalCash)}</span></div>
     </div>
+    ${amenHtml}
   </div>`;
+  };
   return `<div class="sc-row">${sc(G_t,'gc','Good — Essentials')}${sc(B_t,'bc','Better — Rec. Stack')}${sc(X_t,'xc','Best — Full Stack')}</div>`;
 }
 

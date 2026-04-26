@@ -128,11 +128,24 @@ async function buildProforma(propId) {
     const xRaw = await getEstimate(lat, lng, beds, baths, getIds('best'));
     HIDE();
 
-    const amenCost = getAmenCost();
+    // Calculate separate amenity costs per tier
+    const betterAmens = allA().filter(a => (a.tier === 'good' || a.tier === 'better') && AS[a.id] && !a.always);
+    const bestAmens = allA().filter(a => AS[a.id] && !a.always);
+    const betterAmenCost = betterAmens.reduce((s, a) => s + (a.cost || 0), 0);
+    const bestAmenCost = bestAmens.reduce((s, a) => s + (a.cost || 0), 0);
+    
     const gE = extractEst(gRaw), bE = extractEst(bRaw), xE = extractEst(xRaw);
     const G_t = buildTier(gE, prop.listPrice, prop.state, beds, 0);
-    const B_t = buildTier(bE, prop.listPrice, prop.state, beds, amenCost);
-    const X_t = buildTier(xE, prop.listPrice, prop.state, beds, amenCost);
+    const B_t = buildTier(bE, prop.listPrice, prop.state, beds, betterAmenCost);
+    const X_t = buildTier(xE, prop.listPrice, prop.state, beds, bestAmenCost);
+    
+    // Store amenity lists per tier for display
+    G_t.amenityList = AMEN.essentials.map(a => a.label);
+    G_t.amenityListCost = AMEN.essentials.reduce((s, a) => s + (a.cost || 0), 0);
+    B_t.amenityList = [...AMEN.essentials, ...betterAmens].map(a => a.label);
+    B_t.amenityListCost = betterAmenCost;
+    X_t.amenityList = [...AMEN.essentials, ...bestAmens].map(a => a.label);
+    X_t.amenityListCost = bestAmenCost;
     const classification = classifyDeal(B_t, prop.listPrice, prop.state, beds, amenCost);
 
     APP.analyses[propId] = { propId, analyzedAt: Date.now(), good: G_t, better: B_t, best: X_t, classification };
