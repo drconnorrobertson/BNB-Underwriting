@@ -249,7 +249,8 @@ function renderScenarios(G_t,B_t,X_t) {
     ${amenHtml}
   </div>`;
   };
-  return `<div class="sc-row">${sc(G_t,'gc','Good — Essentials')}${sc(B_t,'bc','Better — Rec. Stack')}${sc(X_t,'xc','Best — Full Stack')}</div>`;
+  const noSpreadNote = G_t.noSpread ? '<div style="background:#fff3cd;padding:10px 16px;border-radius:6px;margin:12px 20px 0;font-size:12px;color:#856404;border:1px solid #ffc107;text-align:center"><strong>Note:</strong> AirROI data shows additional amenity improvements do not significantly increase projected income in this market. Focus on deal price and basic setup quality rather than heavy improvement budgets.</div>' : '';
+  return `<div class="sc-row">${sc(G_t,'gc','Good — Essentials')}${sc(B_t,'bc','Better — Rec. Stack')}${sc(X_t,'xc','Best — Full Stack')}</div>${noSpreadNote}`;
 }
 
 // ── PROFORMA TABLE (matches Excel template) ────────────────────────────────────
