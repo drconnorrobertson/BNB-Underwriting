@@ -321,6 +321,7 @@ function calcFurn(beds,tier='premium',hasOutdoor=true){
 
 // ── ONBOARDING ────────────────────────────────────────────────────────────────
 function showOnboarding() {
+  return; // disabled - was blocking entire page
   if (APP.onboarded) return;
   const modal = document.createElement('div');
   modal.className = 'modal-overlay open';
