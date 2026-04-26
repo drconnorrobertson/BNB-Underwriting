@@ -60,7 +60,7 @@ a:hover { text-decoration: underline; }
 /* ══════════════════════════════════════════════════════════════════════
    TOPBAR (boot.js structure)
    ══════════════════════════════════════════════════════════════════════ */
-#appRoot.active { display: flex; flex-direction: column; min-height: 100vh; }
+#appRoot.active { display: block; min-height: 100vh; }
 
 .top {
   position: sticky; top: 0; z-index: 100;
@@ -173,11 +173,11 @@ a:hover { text-decoration: underline; }
    LAYOUT
    ══════════════════════════════════════════════════════════════════════ */
 .main {
-  flex: 1; display: flex; flex-direction: column;
-  overflow: hidden;
+  display: block;
+  overflow: visible;
 }
 
-.views-container { flex: 1; overflow-y: auto; overflow-x: hidden; background: var(--bg); }
+.views-container { overflow-x: hidden; background: var(--bg); -webkit-overflow-scrolling: touch; }
 
 .view { display: none; }
 .view.active { display: block; }
@@ -896,23 +896,23 @@ input[type=checkbox] { accent-color: var(--gold); width: 16px; height: 16px; cur
   .pcard:hover, .prop-card:hover, .kc-card:hover, .kanban-card:hover { transform: none; }
 }
 
-/* MOBILE SCROLL FIX */
+
+/* ── MOBILE TOUCH/SCROLL FIX ─────────────────────────────────────────── */
 html, body {
-  overflow-y: auto !important;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  height: auto !important;
+  height: auto;
 }
 
 #appRoot {
-  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  min-height: 100vh;
 }
 
+/* Overlays must not intercept touch when hidden (display:none handles this,
+   but pointer-events:none is belt-and-suspenders for transition states) */
 #panelOverlay {
   pointer-events: none;
 }
-
 #panelOverlay.active {
   pointer-events: auto;
 }
@@ -920,12 +920,6 @@ html, body {
 .modal {
   pointer-events: none;
 }
-
 .modal.active {
-  pointer-events: auto;
-}
-
-/* Make sure the nav overlay doesn't block scroll when closed */
-.top-nav {
   pointer-events: auto;
 }
