@@ -21,7 +21,7 @@
     }
 
     #appRoot {
-      display: none;
+      /* display: none; */
     }
 
     #appRoot.active {
@@ -1303,7 +1303,7 @@
     }
 
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener("DOMContentLoaded", () => { try {
       // Check for shareable deal link
       const hash = window.location.hash;
       if (hash.startsWith('#deal=')) {
