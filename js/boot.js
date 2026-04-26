@@ -360,7 +360,10 @@
     }
 
     function closePanel() {
-      document.getElementById('panelOverlay').classList.remove('active');
+      const overlay = document.getElementById('panelOverlay');
+      overlay.classList.remove('active');
+      overlay.classList.remove('open');
+      overlay.style.display = 'none';
     }
 
     function openDQModal(propId) {
