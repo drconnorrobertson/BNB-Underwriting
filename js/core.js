@@ -6,7 +6,7 @@ const RAPIDAPI_KEY = 'ca56118692msh934ff5ce7b4982fp181ad8jsn3901adb598e3';
 const PROXY_BASE   = '';
 
 // ── CONSTANTS ──────────────────────────────────────────────────────────────────
-const DOWN=0.20, RATE=7.0, TERM=30, COC_GOOD=12, COC_OFFER=8, MAX_ALL_IN=200000;
+const DOWN=0.10, RATE=6.0, TERM=30, COC_GOOD=10, COC_OFFER=7, MAX_ALL_IN=200000;
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 // ── 49-MARKET SEARCH CONFIG (legacy defaults, migrated to buyBoxes on first load) ──
@@ -248,7 +248,7 @@ function buildTier(est, price, state, beds, amenCost, furnCost=0) {
   const fixed={pi,taxMo,insMo,pmi,water:80,internet:80,lawn:140,poolMaint};
   const fixedTotal=Object.values(fixed).reduce((s,v)=>s+v,0);
   const gbrMo=est.revenue/12;
-  const variable={repairs:gbrMo*.05,supplies:gbrMo*.03,maintenance:gbrMo*.03,hosting:gbrMo*.25,platform:gbrMo*.03,cleaning:cleanRev,gasElec};
+  const variable={repairs:gbrMo*.05,supplies:gbrMo*.03,maintenance:gbrMo*.03,hosting:gbrMo*.20,platform:gbrMo*.03,cleaning:cleanRev,gasElec};
   const variableTotal=Object.values(variable).reduce((s,v)=>s+v,0);
   const gmiMo=gbrMo+cleanRev, garYr=est.revenue+cleanRev*12;
   const totExpMo=fixedTotal+variableTotal, ncfMo=gmiMo-totExpMo, ncfYr=ncfMo*12;

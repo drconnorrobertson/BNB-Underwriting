@@ -62,7 +62,7 @@ function estimateRevenue(searchId, beds) {
   const bedKey = Math.min(Math.max(beds, 2), 6);
   const adr = bm.avgADR[bedKey] || 250;
   const gross = Math.round(adr * 365 * bm.avgOccupancy);
-  return { adr, occ: bm.avgOccupancy, gross, cleaningFee: bm.avgCleaningFee[bedKey] || 150 };
+  return { adr, occ, gross, cleaningFee: bm.avgCleaningFee[bedKey] || 150 };
 }
 
 function classifySeedDeal(gross, listPrice) {
