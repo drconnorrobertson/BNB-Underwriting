@@ -9,7 +9,7 @@ const PROXY_BASE   = '';
 const DOWN=0.10, RATE=6.0, TERM=30, COC_GOOD=10, COC_OFFER=7, MAX_ALL_IN=200000;
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-// ── 21-MARKET SEARCH CONFIG (legacy defaults, migrated to buyBoxes on first load) ──
+// ── 49-MARKET SEARCH CONFIG (legacy defaults, migrated to buyBoxes on first load) ──
 const SEARCHES_DEFAULT = [
   {id:'s1',  name:'Shenandoah Valley VA',      city:'Harrisonburg',     state:'VA', lat:38.4496,  lng:-78.8689,  beds_min:5, pmin:500000,  pmax:1000000, tags:['Mountain','Ski','Resort']},
   {id:'s2',  name:'Carson City NV',             city:'Carson City',      state:'NV', lat:39.1638,  lng:-119.7674, beds_min:4, pmin:300000,  pmax:900000,  tags:['Nevada','Desert']},
@@ -32,6 +32,34 @@ const SEARCHES_DEFAULT = [
   {id:'s19', name:'Lake Tahoe NV',              city:'Stateline',        state:'NV', lat:38.9637,  lng:-119.9441, beds_min:3, pmin:400000,  pmax:1000000, tags:['Mountain','Lake','Nevada']},
   {id:'s20', name:'Helen GA',                   city:'Helen',            state:'GA', lat:34.7026,  lng:-83.7302,  beds_min:3, pmin:300000,  pmax:750000,  tags:['Mountain','Cabin','Georgia']},
   {id:'s21', name:'Chattanooga TN',             city:'Chattanooga',      state:'TN', lat:35.0456,  lng:-85.3097,  beds_min:3, pmin:300000,  pmax:900000,  tags:['Urban','Tennessee','Mountain']},
+  {id:'s22', name:'Sevierville TN',              city:'Sevierville',      state:'TN', lat:35.8682,  lng:-83.5616, beds_min:3, pmin:300000,  pmax:900000,  tags:['Mountain','Cabin','Tennessee']},
+  {id:'s23', name:'Orange Beach AL',             city:'Orange Beach',     state:'AL', lat:30.2941,  lng:-87.5736, beds_min:3, pmin:300000,  pmax:950000,  tags:['Beach','Alabama']},
+  {id:'s24', name:'Panama City Beach FL',        city:'Panama City Beach',state:'FL', lat:30.1766,  lng:-85.8055, beds_min:3, pmin:300000,  pmax:950000,  tags:['Beach','Florida','Gulf']},
+  {id:'s25', name:'Hilton Head SC',              city:'Hilton Head',      state:'SC', lat:32.2163,  lng:-80.7526, beds_min:3, pmin:350000,  pmax:1000000, tags:['Beach','South Carolina']},
+  {id:'s26', name:'Savannah GA',                 city:'Savannah',         state:'GA', lat:32.0809,  lng:-81.0912, beds_min:3, pmin:300000,  pmax:900000,  tags:['Urban','Georgia']},
+  {id:'s27', name:'Outer Banks NC',              city:'Outer Banks',      state:'NC', lat:36.0075,  lng:-75.6584, beds_min:3, pmin:350000,  pmax:1000000, tags:['Beach','North Carolina']},
+  {id:'s28', name:'Sedona AZ',                   city:'Sedona',           state:'AZ', lat:34.8697,  lng:-111.7610,beds_min:3, pmin:400000,  pmax:1000000, tags:['Desert','Arizona']},
+  {id:'s29', name:'Joshua Tree CA',              city:'Joshua Tree',      state:'CA', lat:34.1347,  lng:-116.3131,beds_min:2, pmin:300000,  pmax:800000,  tags:['Desert','California']},
+  {id:'s30', name:'Palm Springs CA',             city:'Palm Springs',     state:'CA', lat:33.8303,  lng:-116.5453,beds_min:3, pmin:350000,  pmax:1000000, tags:['Desert','California','Luxury']},
+  {id:'s31', name:'Big Bear Lake CA',            city:'Big Bear Lake',    state:'CA', lat:34.2439,  lng:-116.9114,beds_min:2, pmin:300000,  pmax:800000,  tags:['Mountain','Lake','California']},
+  {id:'s32', name:'Fredericksburg TX',           city:'Fredericksburg',   state:'TX', lat:30.2752,  lng:-98.8720, beds_min:3, pmin:300000,  pmax:900000,  tags:['Texas']},
+  {id:'s33', name:'Galveston TX',                city:'Galveston',        state:'TX', lat:29.3013,  lng:-94.7977, beds_min:3, pmin:300000,  pmax:850000,  tags:['Beach','Texas']},
+  {id:'s34', name:'South Padre Island TX',       city:'South Padre Island',state:'TX',lat:26.1118,  lng:-97.1681, beds_min:2, pmin:300000,  pmax:900000,  tags:['Beach','Texas']},
+  {id:'s35', name:'Branson MO',                  city:'Branson',          state:'MO', lat:36.6437,  lng:-93.2185, beds_min:3, pmin:300000,  pmax:800000,  tags:['Lake','Mountain']},
+  {id:'s36', name:'Steamboat Springs CO',        city:'Steamboat Springs',state:'CO', lat:40.4850,  lng:-106.8317,beds_min:3, pmin:400000,  pmax:1000000, tags:['Ski','Mountain','Colorado']},
+  {id:'s37', name:'Park City UT',                city:'Park City',        state:'UT', lat:40.6461,  lng:-111.4980,beds_min:3, pmin:450000,  pmax:1000000, tags:['Ski','Mountain']},
+  {id:'s38', name:'Whitefish MT',                city:'Whitefish',        state:'MT', lat:48.4106,  lng:-114.3529,beds_min:3, pmin:350000,  pmax:1000000, tags:['Ski','Mountain']},
+  {id:'s39', name:'Lake George NY',              city:'Lake George',      state:'NY', lat:43.4262,  lng:-73.7137, beds_min:3, pmin:300000,  pmax:900000,  tags:['Lakefront','Lake']},
+  {id:'s40', name:'Cape Cod MA',                 city:'Barnstable',       state:'MA', lat:41.6688,  lng:-70.2962, beds_min:3, pmin:350000,  pmax:1000000, tags:['Beach']},
+  {id:'s41', name:'Bar Harbor ME',               city:'Bar Harbor',       state:'ME', lat:44.3876,  lng:-68.2039, beds_min:3, pmin:300000,  pmax:900000,  tags:['Beach','Mountain']},
+  {id:'s42', name:'Shenandoah VA',               city:'Luray',            state:'VA', lat:38.6649,  lng:-78.4594, beds_min:3, pmin:300000,  pmax:800000,  tags:['Mountain']},
+  {id:'s43', name:'Kissimmee FL',                city:'Kissimmee',        state:'FL', lat:28.2920,  lng:-81.4076, beds_min:4, pmin:300000,  pmax:900000,  tags:['Florida']},
+  {id:'s44', name:'Orlando FL',                  city:'Orlando',          state:'FL', lat:28.4590,  lng:-81.4684, beds_min:4, pmin:300000,  pmax:950000,  tags:['Florida']},
+  {id:'s45', name:'Cape Coral FL',               city:'Cape Coral',       state:'FL', lat:26.6315,  lng:-81.9575, beds_min:3, pmin:300000,  pmax:900000,  tags:['Florida','Beach']},
+  {id:'s46', name:'Sarasota FL',                 city:'Sarasota',         state:'FL', lat:27.3364,  lng:-82.5307, beds_min:3, pmin:350000,  pmax:1000000, tags:['Florida','Beach','Gulf']},
+  {id:'s47', name:'Anna Maria Island FL',        city:'Anna Maria',       state:'FL', lat:27.5231,  lng:-82.7334, beds_min:3, pmin:400000,  pmax:1000000, tags:['Florida','Beach']},
+  {id:'s48', name:'St Augustine FL',             city:'St Augustine',     state:'FL', lat:29.8943,  lng:-81.3145, beds_min:3, pmin:300000,  pmax:900000,  tags:['Florida','Beach']},
+  {id:'s49', name:'Key West FL',                 city:'Key West',         state:'FL', lat:24.5551,  lng:-81.7800, beds_min:2, pmin:400000,  pmax:1000000, tags:['Florida','Beach']},
 ];
 
 // ── APP STATE ──────────────────────────────────────────────────────────────────
@@ -265,6 +293,13 @@ const COMPLY = {
   'CO':{status:'restricted',icon:'warning',label:'Restricted',permit:true,cost:1200,hoa:'high',nights:null,note:'Summit County STR permit cap.',reqs:['Summit County STR License','Town Permit','CO Sales Tax']},
   'NC':{status:'restricted',icon:'warning',label:'Restricted',permit:true,cost:500,hoa:'medium',nights:null,note:'Asheville has strict STR ordinance.',reqs:['City STR Permit','NC Occupancy Tax']},
   'AZ':{status:'allowed',icon:'check',label:'Allowed',permit:true,cost:250,hoa:'high',nights:null,note:'AZ state preempts HOA bans.',reqs:['City TPT License','AZ Registration']},
+  'CA':{status:'restricted',icon:'warning',label:'Restricted',permit:true,cost:500,hoa:'high',nights:null,note:'Varies by city. Some cities ban or cap STRs.',reqs:['City STR Permit','CA Transient Occupancy Tax','Business License']},
+  'UT':{status:'allowed',icon:'check',label:'Allowed',permit:true,cost:300,hoa:'medium',nights:null,note:'UT allows STRs with local permits.',reqs:['City Business License','UT Transient Room Tax']},
+  'MT':{status:'allowed',icon:'check',label:'Allowed',permit:true,cost:200,hoa:'low',nights:null,note:'MT generally STR-friendly.',reqs:['County Permit','MT Lodging Facility Use Tax']},
+  'MO':{status:'allowed',icon:'check',label:'Allowed',permit:true,cost:100,hoa:'low',nights:null,note:'MO generally STR-friendly. Branson is welcoming.',reqs:['City Business License','MO Sales Tax']},
+  'NY':{status:'restricted',icon:'warning',label:'Restricted',permit:true,cost:400,hoa:'high',nights:30,note:'NY has strict rules. Upstate markets more flexible.',reqs:['County STR Permit','NY Sales Tax','Occupancy Tax']},
+  'MA':{status:'restricted',icon:'warning',label:'Restricted',permit:true,cost:350,hoa:'medium',nights:null,note:'MA requires registration and tax collection.',reqs:['MA STR Registration','Community Impact Fee','Room Occupancy Tax']},
+  'ME':{status:'allowed',icon:'check',label:'Allowed',permit:true,cost:200,hoa:'low',nights:null,note:'ME allows STRs with registration.',reqs:['ME Lodging Registration','ME Sales Tax']},
 };
 function getCompliance(state) {
   return COMPLY[state?.toUpperCase()] || {status:'unknown',icon:'question',label:'Unknown',permit:true,cost:0,hoa:'unknown',nights:null,note:'Verify local zoning and permit requirements.',reqs:['Verify Local Zoning','Check HOA CC&Rs']};
