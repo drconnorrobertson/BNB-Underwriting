@@ -895,3 +895,37 @@ input[type=checkbox] { accent-color: var(--gold); width: 16px; height: 16px; cur
 @media (hover: none) and (pointer: coarse) {
   .pcard:hover, .prop-card:hover, .kc-card:hover, .kanban-card:hover { transform: none; }
 }
+
+/* MOBILE SCROLL FIX */
+html, body {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  height: auto !important;
+}
+
+#appRoot {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  min-height: 100vh;
+}
+
+#panelOverlay {
+  pointer-events: none;
+}
+
+#panelOverlay.active {
+  pointer-events: auto;
+}
+
+.modal {
+  pointer-events: none;
+}
+
+.modal.active {
+  pointer-events: auto;
+}
+
+/* Make sure the nav overlay doesn't block scroll when closed */
+.top-nav {
+  pointer-events: auto;
+}
