@@ -17,10 +17,9 @@ function getAllProps() {
       let status = 'unscored';
       if (dq||p.dqd) status='dq';
       else if (a?.classification) status=a.classification.status;
-      else if (p.prelim?.prelim_status==='prelim_good') status='good';
-      else if (p.prelim?.prelim_status==='prelim_offer') status='needs-offer';
-      else if (p.prelim?.prelim_status==='prelim_dq') status='dq';
-      else if (p.prelim) status='prelim';
+      else if (p.prelim?.prelim_status==='prelim_good'||p.prelim?.prelim_status==='good') status='good';
+      else if (p.prelim?.prelim_status==='prelim_offer'||p.prelim?.prelim_status==='needs-offer') status='needs-offer';
+      else if (p.prelim) status='needs-offer'; // Default screened properties to needs-offer, not pending
       const coc = a?.better?.coc ?? p.prelim?.prelim_coc ?? null;
       const rev = a?.better?.revenue ?? p.prelim?.prelim_revenue ?? null;
       const isPrelim = !a && p.prelim;
@@ -59,7 +58,7 @@ function updateNavCounts() {
   const dq=APP.dqLog.length;
   const sl=APP.shortlist.length;
   [['nc_good',good],['nc_offer',offer],['nc_dq',dq],['nc_sl',sl]].forEach(([id,v])=>{const e=G(id);if(e)e.textContent=v;});
-  [['statProps',all.length],['statGood',good],['statOffer',offer],['statDQ',dq],['statPending',all.filter(p=>p.status==='unscored'||p.status==='prelim').length],['statAirROI',APP.apiCalls||0]].forEach(([id,v])=>{const e=G(id);if(e)e.textContent=v;});
+  [['statProps',all.length],['statGood',good],['statOffer',offer],['statDQ',dq],['statPending',all.filter(p=>p.status==='unscored').length],['statAirROI',APP.apiCalls||0]].forEach(([id,v])=>{const e=G(id);if(e)e.textContent=v;});
   // Also update nav pills
   [['pill_all',all.length],['pill_good',good],['pill_offer',offer],['pill_dq',dq]].forEach(([id,v])=>{const e=G(id);if(e)e.textContent=v;});
 }
