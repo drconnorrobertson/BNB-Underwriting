@@ -736,7 +736,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="js/seeddata.js"></script>
   <script src="js/core.js"></script>
-  <script src="js/auth.js"></script>
   <script src="js/amenities.js"></script>
   <script src="js/buybox.js"></script>
   <script src="js/pipeline.js"></script>
@@ -788,9 +787,6 @@
             <button class="nav-tab" id="nav_searches" onclick="showView('searches')">
               Searches
             </button>
-            <button class="nav-tab" id="nav_clients" onclick="showView('clients')">
-              Clients
-            </button>
           </div>
 
           <div class="top-right">
@@ -803,7 +799,6 @@
             </div>
             <button class="btn btn-refresh" onclick="refreshData()">Refresh</button>
             <button class="btn btn-primary" onclick="openBuyBoxModal()">+ New Buy Box</button>
-            <button class="btn btn-secondary" onclick="logout()">Logout</button>
           </div>
         </div>
 
@@ -939,12 +934,6 @@
             </div>
 
             <!-- CLIENTS VIEW -->
-            <div class="view" id="clients">
-              <div style="padding: 20px;">
-                <h2 class="heading-h2">Client Management</h2>
-                <div id="clientsContent"></div>
-              </div>
-            </div>
           </div>
         </div>
       `;
@@ -1083,7 +1072,6 @@
       if (window.showOnboarding) showOnboarding();
       if (window.renderSavedSearches) renderSavedSearches();
       if (window.renderDQRulesPanel) renderDQRulesPanel();
-      if (window.renderClientManagerView) renderClientManagerView();
     }
 
     // Navigation and view functions
@@ -1160,15 +1148,169 @@
     }
 
     // Boot on page load
+    function shareDeal(propId) {
+      const url = `${window.location.origin}${window.location.pathname}#deal=${encodeURIComponent(propId)}`;
+      navigator.clipboard.writeText(url).then(() => {
+        alert('Deal link copied! Share this with your client.');
+      }).catch(() => {
+        prompt('Copy this link:', url);
+      });
+    }
+
+    function bootDealView(dealId) {
+      const appRoot = document.getElementById('appRoot');
+      appRoot.classList.add('active');
+      
+      // Get property and analysis data
+      const prop = APP.props.find(p => p.propId === dealId);
+      if (!prop) {
+        appRoot.innerHTML = '<div style="padding: 20px; color: red;">Property not found.</div>';
+        return;
+      }
+      
+      const analysis = APP.analyses[dealId];
+      
+      // Format currency
+      const formatCurrency = (val) => {
+        if (!val && val !== 0) return 'N/A';
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+      };
+      
+      // Format percentage
+      const formatPct = (val) => {
+        if (!val && val !== 0) return 'N/A';
+        return (val * 100).toFixed(1) + '%';
+      };
+      
+      // Build HTML
+      const photoUrl = prop.photoUrl || 'https://via.placeholder.com/600x400?text=No+Photo';
+      const beds = prop.beds || 'N/A';
+      const baths = prop.baths || 'N/A';
+      const sqft = prop.sqft || 'N/A';
+      const address = prop.address || 'Unknown Address';
+      const price = formatCurrency(prop.price);
+      
+      let metricsHtml = '';
+      if (analysis) {
+        metricsHtml = `
+          <div class="deal-metrics">
+            <div class="metric-row">
+              <div class="metric">
+                <div class="metric-label">Cash on Cash Return</div>
+                <div class="metric-value">${formatPct(analysis.coc)}</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Annual Revenue</div>
+                <div class="metric-value">${formatCurrency(analysis.annualRevenue)}</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Monthly Cash Flow</div>
+                <div class="metric-value">${formatCurrency(analysis.monthlyFlow)}</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Total Cash Needed</div>
+                <div class="metric-value">${formatCurrency(analysis.totalCashNeeded)}</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">ROI</div>
+                <div class="metric-value">${formatPct(analysis.roi)}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      appRoot.innerHTML = `
+        <div style="background: white; color: #333; height: 100vh; overflow-y: auto; padding: 40px 20px;">
+          <div style="max-width: 900px; margin: 0 auto;">
+            <!-- BNB Accelerator Branding -->
+            <div style="text-align: center; margin-bottom: 30px; border-bottom: 1px solid #e0e0e0; padding-bottom: 20px;">
+              <img src="https://bnbaccelerator.com/wp-content/uploads/2025/03/BNB_Accelerator_logo-150x77.png" alt="BNB Accelerator" style="height: 40px; margin-bottom: 10px;">
+              <h1 style="font-size: 28px; margin: 10px 0; color: #0D1117;">Deal Summary</h1>
+              <p style="color: #666; font-size: 14px;">Prepared by BNB Accelerator</p>
+            </div>
+            
+            <!-- Property Photo -->
+            <div style="margin-bottom: 30px;">
+              <img src="${photoUrl}" alt="Property" style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px;">
+            </div>
+            
+            <!-- Property Info -->
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+              <h2 style="font-size: 24px; margin: 0 0 10px 0; color: #0D1117;">${address}</h2>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 20px; margin-top: 15px;">
+                <div>
+                  <div style="font-size: 12px; color: #666; text-transform: uppercase;">Beds</div>
+                  <div style="font-size: 20px; font-weight: 600; color: #0D1117;">${beds}</div>
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: #666; text-transform: uppercase;">Baths</div>
+                  <div style="font-size: 20px; font-weight: 600; color: #0D1117;">${baths}</div>
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: #666; text-transform: uppercase;">Sqft</div>
+                  <div style="font-size: 20px; font-weight: 600; color: #0D1117;">${sqft}</div>
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: #666; text-transform: uppercase;">Price</div>
+                  <div style="font-size: 20px; font-weight: 600; color: #0D1117;">${price}</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Key Metrics -->
+            ${metricsHtml}
+            
+            <!-- Investment Summary -->
+            ${analysis ? `
+              <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <h3 style="font-size: 18px; margin: 0 0 15px 0; color: #0D1117;">Investment Summary</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                  <div>
+                    <div style="font-size: 12px; color: #666; text-transform: uppercase;">Annual Income</div>
+                    <div style="font-size: 18px; font-weight: 600; color: #238636;">${formatCurrency(analysis.annualRevenue)}</div>
+                  </div>
+                  <div>
+                    <div style="font-size: 12px; color: #666; text-transform: uppercase;">Annual Expenses</div>
+                    <div style="font-size: 18px; font-weight: 600; color: #238636;">${formatCurrency(analysis.annualExpenses || 0)}</div>
+                  </div>
+                  <div>
+                    <div style="font-size: 12px; color: #666; text-transform: uppercase;">Net Operating Income</div>
+                    <div style="font-size: 18px; font-weight: 600; color: #238636;">${formatCurrency(analysis.noi || 0)}</div>
+                  </div>
+                  <div>
+                    <div style="font-size: 12px; color: #666; text-transform: uppercase;">Cap Rate</div>
+                    <div style="font-size: 18px; font-weight: 600; color: #238636;">${formatPct(analysis.capRate || 0)}</div>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+            
+            <!-- STR Compliance (if applicable) -->
+            ${prop.strCompliance ? `
+              <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <h3 style="font-size: 18px; margin: 0 0 15px 0; color: #0D1117;">STR Compliance</h3>
+                <p style="margin: 0; color: #666;">${prop.strCompliance}</p>
+              </div>
+            ` : ''}
+            
+            <!-- Footer -->
+            <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #999; font-size: 12px;">
+              <p>This deal summary was prepared by BNB Accelerator. For questions or additional information, please contact your investment advisor.</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
-      if (window.isLoggedIn && window.isLoggedIn()) {
-        if (window.isClient && window.isClient()) {
-          if (window.bootClientView) window.bootClientView();
-        } else {
-          bootApp();
-        }
+      // Check for shareable deal link
+      const hash = window.location.hash;
+      if (hash.startsWith('#deal=')) {
+        const dealId = decodeURIComponent(hash.slice(6));
+        bootDealView(dealId);
       } else {
-        if (window.renderLoginScreen) window.renderLoginScreen();
+        bootApp();
       }
     });
   </script>
