@@ -941,7 +941,7 @@
       // DETAIL PANEL OVERLAY
       const panelOverlay = document.createElement('div');
       panelOverlay.id = 'panelOverlay';
-      panelOverlay.innerHTML = \`
+      panelOverlay.innerHTML = '
         <div class="detail-panel">
           <div class="panel-head">
             <div>
@@ -952,14 +952,14 @@
           </div>
           <div class="panelBody" id="panelBody"></div>
         </div>
-      \`;
+      ';
       document.body.appendChild(panelOverlay);
 
       // DQ MODAL
       const dqModal = document.createElement('div');
       dqModal.id = 'dqModal';
       dqModal.className = 'modal';
-      dqModal.innerHTML = \`
+      dqModal.innerHTML = '
         <div class="modal-content">
           <div class="modal-header">Disqualify Property</div>
           <div class="modal-form">
@@ -984,14 +984,14 @@
             <button class="btn btn-primary" onclick="submitDQ()">Disqualify</button>
           </div>
         </div>
-      \`;
+      ';
       document.body.appendChild(dqModal);
 
       // BUY BOX MODAL
       const buyBoxModal = document.createElement('div');
       buyBoxModal.id = 'buyBoxModal';
       buyBoxModal.className = 'modal';
-      buyBoxModal.innerHTML = \`
+      buyBoxModal.innerHTML = '
         <div class="modal-content">
           <div class="modal-header">New Buy Box Search</div>
           <div class="modal-form">
@@ -1057,7 +1057,7 @@
             <button class="btn btn-primary" onclick="handleSaveBuyBox()">Save Buy Box</button>
           </div>
         </div>
-      \`;
+      ';
       document.body.appendChild(buyBoxModal);
 
       // Initialize the app
