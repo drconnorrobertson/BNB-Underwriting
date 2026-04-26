@@ -908,3 +908,85 @@ html, body {
   -webkit-overflow-scrolling: touch;
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   FIX: HAMBURGER MOBILE NAV OVERRIDE
+   ══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .top-nav {
+    display: none !important;
+    flex-direction: column;
+    width: 100%; order: 10; height: auto;
+    background: rgba(255,255,255,.04);
+    border-top: 1px solid rgba(255,255,255,.08);
+    padding: 6px 0; gap: 0;
+  }
+  .top-nav.mobile-open {
+    display: flex !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   FEATURE 2: BULK DQ SELECT MODE
+   ══════════════════════════════════════════════════════════════════════ */
+.bulk-bar {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  background: var(--tx); color: #fff; padding: 12px 20px;
+  border-radius: var(--r3); box-shadow: var(--sh3);
+  display: flex; align-items: center; gap: 12px; z-index: 150;
+  font-size: 12px; font-weight: 500;
+}
+.bulk-bar .btn { font-size: 11px; }
+.pcard-checkbox {
+  position: absolute; top: 10px; left: 10px; z-index: 5;
+  width: 18px; height: 18px; accent-color: var(--gold);
+  cursor: pointer;
+}
+.pcard { position: relative; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   FEATURE 3: MARKET SUMMARY CARDS
+   ══════════════════════════════════════════════════════════════════════ */
+.market-summary-row {
+  display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px;
+  margin-bottom: 12px; scroll-snap-type: x mandatory;
+}
+.market-summary-row::-webkit-scrollbar { height: 4px; }
+.market-summary-row::-webkit-scrollbar-thumb { background: var(--bd2); border-radius: 2px; }
+.mkt-card {
+  flex: 0 0 180px; scroll-snap-align: start;
+  background: var(--w); border: 1px solid var(--bd); border-radius: var(--r2);
+  padding: 10px 12px; cursor: pointer; transition: all .12s;
+  box-shadow: var(--sh);
+}
+.mkt-card:hover { border-color: var(--gold); box-shadow: var(--sh2); }
+.mkt-card.active { border-color: var(--gold); background: var(--gbg); }
+.mkt-card-name { font-size: 11px; font-weight: 600; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mkt-card-stats { display: flex; flex-wrap: wrap; gap: 4px 8px; font-size: 9px; color: var(--tx3); }
+.mkt-card-stats strong { color: var(--tx); font-weight: 700; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   FEATURE 4: NOTES ICON ON CARDS
+   ══════════════════════════════════════════════════════════════════════ */
+.pcard-notes-icon {
+  position: absolute; top: 10px; right: 10px; z-index: 5;
+  font-size: 14px; background: rgba(255,255,255,.9);
+  border-radius: 4px; padding: 2px 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.15);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   FEATURE 5: LAST VIEWED BADGE
+   ══════════════════════════════════════════════════════════════════════ */
+.pcard-viewed {
+  font-size: 9px; color: var(--tx4); font-weight: 500;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   FEATURE 6: NEW BADGE
+   ══════════════════════════════════════════════════════════════════════ */
+.pcard-new-badge {
+  display: inline-block; font-size: 8px; font-weight: 700;
+  background: #F97316; color: #fff; border-radius: 3px;
+  padding: 1px 5px; margin-left: 6px; vertical-align: middle;
+  letter-spacing: .04em;
+}
