@@ -11,6 +11,7 @@
             </div>
           </div>
 
+          <button class="hamburger-btn" onclick="toggleMobileNav()" aria-label="Menu">&#9776;</button>
           <div class="top-nav">
             <button class="nav-tab active" id="nav_all" onclick="showView('all')">
               All <span class="pill" id="pill_all">0</span>
@@ -327,8 +328,19 @@
     }
 
     // Navigation and view functions
+    // Mobile nav toggle
+    function toggleMobileNav() {
+      const nav = document.querySelector(".top-nav");
+      if (nav) nav.classList.toggle("mobile-open");
+      const btn = document.querySelector(".hamburger-btn");
+      if (btn) btn.textContent = nav.classList.contains("mobile-open") ? "\u2715" : "\u2630";
+    }
+
     function showView(viewId) {
       // Hide all views
+      // Close mobile nav when switching views
+      const mobileNav = document.querySelector(".top-nav.mobile-open");
+      if (mobileNav) { mobileNav.classList.remove("mobile-open"); const hb = document.querySelector(".hamburger-btn"); if (hb) hb.textContent = "\u2630"; }
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
 
