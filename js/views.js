@@ -1,3 +1,8 @@
+
+// Pagination
+var PAGE_SIZE = 24;
+var CURRENT_PAGE = 1;
+
 'use strict';
 
 // ── NAV (see expanded showView at bottom of file) ────────────────────────────
@@ -71,7 +76,46 @@ function renderPropGrid() {
     container.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🏠</div><div class="empty-title">${all.length?'No properties match filters':'No properties loaded'}</div><div class="empty-sub" style="margin-bottom:16px">${all.length?'Try adjusting your filters':'Click ↻ Refresh to pull real listings from Realtor.com'}</div>${!all.length?'<button class="btn btn-gold btn-lg" onclick="loadAllSearches()">↻ Load Real Properties</button>':''}</div>`;
     return;
   }
-  container.innerHTML=filtered.map(p=>propCardHTML(p)).join('');
+  // Pagination
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  if (CURRENT_PAGE > totalPages) CURRENT_PAGE = totalPages;
+  if (CURRENT_PAGE < 1) CURRENT_PAGE = 1;
+  const start = (CURRENT_PAGE - 1) * PAGE_SIZE;
+  const pageItems = filtered.slice(start, start + PAGE_SIZE);
+
+  // Compute averages for display
+  const avgCoC = filtered.filter(p=>p.coc!=null).reduce((s,p)=>s+p.coc,0) / (filtered.filter(p=>p.coc!=null).length||1);
+  const avgRev = filtered.filter(p=>p.rev).reduce((s,p)=>s+p.rev,0) / (filtered.filter(p=>p.rev).length||1);
+
+  let html = '';
+  // Summary bar
+  html += `<div style="grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;padding:8px 4px;margin-bottom:4px;font-size:12px;color:#666">`;
+  html += `<span>Showing ${start+1}-${Math.min(start+PAGE_SIZE, filtered.length)} of ${filtered.length} properties</span>`;
+  html += `<span style="display:flex;gap:16px">`;
+  html += `<span>Avg CoC: <b style="color:${avgCoC>0.08?'var(--gr)':'var(--rd)'}">~${(avgCoC*100).toFixed(1)}%</b></span>`;
+  html += `<span>Avg Rev/yr: <b style="color:var(--gr)">~$${Math.round(avgRev/1000)}K</b></span>`;
+  html += `</span></div>`;
+
+  html += pageItems.map(p=>propCardHTML(p)).join('');
+
+  // Pagination controls
+  if (totalPages > 1) {
+    html += `<div style="grid-column:1/-1;display:flex;justify-content:center;align-items:center;gap:8px;padding:24px 0;margin-top:8px">`;
+    html += `<button class="btn btn-out btn-sm" ${CURRENT_PAGE<=1?'disabled':''} onclick="CURRENT_PAGE=1;renderPropGrid();window.scrollTo(0,0)">First</button>`;
+    html += `<button class="btn btn-out btn-sm" ${CURRENT_PAGE<=1?'disabled':''} onclick="CURRENT_PAGE--;renderPropGrid();window.scrollTo(0,0)">← Prev</button>`;
+    // Page numbers
+    let startPage = Math.max(1, CURRENT_PAGE - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+    if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+    for (let i = startPage; i <= endPage; i++) {
+      html += `<button class="btn ${i===CURRENT_PAGE?'btn-dark':'btn-out'} btn-sm" style="min-width:36px" onclick="CURRENT_PAGE=${i};renderPropGrid();window.scrollTo(0,0)">${i}</button>`;
+    }
+    html += `<button class="btn btn-out btn-sm" ${CURRENT_PAGE>=totalPages?'disabled':''} onclick="CURRENT_PAGE++;renderPropGrid();window.scrollTo(0,0)">Next →</button>`;
+    html += `<button class="btn btn-out btn-sm" ${CURRENT_PAGE>=totalPages?'disabled':''} onclick="CURRENT_PAGE=${totalPages};renderPropGrid();window.scrollTo(0,0)">Last</button>`;
+    html += `</div>`;
+  }
+
+  container.innerHTML = html;
 }
 
 function renderSubGrid(status) {
@@ -110,7 +154,7 @@ function propCardHTML(p) {
     <div class="pcard-body">
       <div class="pcard-head">
         <div>
-          <div class="pcard-addr">${p.address}${p.sl?` <span class="tag gr" style="font-size:7px;vertical-align:middle">★</span>`:''}</div>
+          <div class="pcard-addr">${p.address}${p.sl?` <span class="tag gr" style="font-size:7px;vertical-align:middle">★</span>`:''} ${p.listingUrl?`<a href="${p.listingUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:10px;color:var(--gold);text-decoration:none;font-weight:500;margin-left:6px">View Listing ↗</a>`:''}</div>
           <div class="pcard-loc">${p.city}, ${p.state} ${p.zip}${p.priceReduced?` <span style="color:var(--rd);font-size:9px">▼ Reduced</span>`:''}</div>
         </div>
         <span class="status-chip ${sm.cls}">${sm.label}</span>
