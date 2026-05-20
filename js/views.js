@@ -73,7 +73,7 @@ function renderPropGrid() {
   const container=G('propGrid'); if(!container) return;
   updateNavCounts();
   if(!filtered.length){
-    container.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🏠</div><div class="empty-title">${all.length?'No properties match filters':'No properties loaded'}</div><div class="empty-sub" style="margin-bottom:16px">${all.length?'Try adjusting your filters':'Click ↻ Refresh to pull real listings from Realtor.com'}</div>${!all.length?'<button class="btn btn-gold btn-lg" onclick="loadAllSearches()">↻ Load Real Properties</button>':''}</div>`;
+    container.innerHTML=`<div class="empty" style="width:100%"><div class="empty-icon">🏠</div><div class="empty-title">${all.length?'No properties match filters':'No properties loaded'}</div><div class="empty-sub" style="margin-bottom:16px">${all.length?'Try adjusting your filters':'Click ↻ Refresh to pull real listings from Realtor.com'}</div>${!all.length?'<button class="btn btn-gold btn-lg" onclick="loadAllSearches()">↻ Load Real Properties</button>':''}</div>`;
     return;
   }
   // Pagination
@@ -138,44 +138,27 @@ function propCardHTML(p) {
     reject:{cls:'chip-dq',label:'✗ Doesn\'t Pencil'},
   };
   const sm=statusMap[p.status]||statusMap.unscored;
+  const hasAirROI=a&&a.classification;
+  const cocColor=p.coc!=null?(p.coc>=0.12?'var(--gr)':p.coc>=0.08?'#e6a817':'var(--rd)'):'var(--tx4)';
+  const cocLabel=p.isPrelim&&!hasAirROI?'~'+(p.coc*100).toFixed(1)+'% est.':(p.coc!=null?(p.coc*100).toFixed(1)+'%':'--');
+  const revLabel=p.rev?('~$'+Math.round(p.rev/1000)+'K/yr'+(p.isPrelim&&!hasAirROI?' est.':'')):'--';
   const isGoodOrOffer=p.status==='good'||p.status==='needs-offer'||p.status==='prelim';
-  const hasAirROI=!!a;
-  const cocColor=p.coc==null?'var(--tx4)':p.coc>=COC_GOOD?'var(--gr)':p.coc>=COC_OFFER?'var(--am)':'var(--rd)';
-  const cocLabel=p.isPrelim&&!hasAirROI?`~${fpc(p.coc)} est.`:fpc(p.coc);
-  const revLabel=p.isPrelim&&!hasAirROI?`~${fmK(p.rev)}/yr est.`:fmK(p.rev);
-  const offerPrice=a?.classification?.viablePrice;
 
-  const phIcon = {good:'✓ Good Deal','needs-offer':'⚡ Offer',prelim:'◎ Prelim',dq:'✗ DQ',unscored:'◯'}[p.status]||'';
-  const phTypeIcon = p.beds >= 5 ? '<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9h.01"/><path d="M9 12h.01"/><path d="M9 15h.01"/><path d="M9 18h.01"/></svg>' : '<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
-  return `<div class="pcard ${p.status}" onclick="openPropPanel('${p.id}')">
-    ${p.photo
-      ? `<img class="pcard-img" src="${p.photo}" loading="lazy" onerror="this.outerHTML='<div class=pcard-img-ph>${phTypeIcon}</div>'"/>`
-      : `<div class="pcard-img-ph">${phTypeIcon}<span style="position:absolute;bottom:10px;left:14px;font-size:11px;font-weight:600;color:rgba(255,255,255,.45);letter-spacing:.5px">${p.beds}bd · ${p.baths}ba · ${fmK(p.listPrice)}</span></div>`}
-    <div class="pcard-body">
-      <div class="pcard-head">
-        <div>
-          <div class="pcard-addr">${p.address}${p.sl?` <span class="tag gr" style="font-size:7px;vertical-align:middle">★</span>`:''} ${p.listingUrl?`<a href="${p.listingUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:10px;color:var(--gold);text-decoration:none;font-weight:500;margin-left:6px">View Listing ↗</a>`:''}</div>
-          <div class="pcard-loc">${p.city}, ${p.state} ${p.zip}${p.priceReduced?` <span style="color:var(--rd);font-size:9px">▼ Reduced</span>`:''}</div>
-        </div>
-        <span class="status-chip ${sm.cls}">${sm.label}</span>
-      </div>
-      <div class="pcard-spec">${p.beds}bd · ${p.baths}ba · ${p.sqft?.toLocaleString()||'?'} sqft · ${p.yearBuilt||'?'} built · ${p.dom||0}d on market${p.hoa?` · HOA $${p.hoa}/mo`:''}</div>
-      <div class="pcard-metrics">
-        <div><div class="pm-v">${fm(p.listPrice)}</div><div class="pm-k">List Price</div></div>
-        <div><div class="pm-v" style="color:${cocColor};font-size:${p.coc==null?'14px':'14px'}">${p.coc!=null?cocLabel:'--'}</div><div class="pm-k">CoC${p.isPrelim&&!hasAirROI?' (est.)':''}</div></div>
-        <div><div class="pm-v" style="color:${p.rev?'var(--gr)':'var(--tx4)'}">${p.rev?revLabel:'--'}</div><div class="pm-k">Rev/yr${p.isPrelim&&!hasAirROI?' (est.)':''}</div></div>
-      </div>
-    </div>
-    <div class="pcard-footer" onclick="event.stopPropagation()">
-      <button class="btn btn-dark btn-sm" onclick="event.stopPropagation();openPropPanel('${p.id}');setTimeout(()=>buildProforma('${p.id}'),50)">
-        ${hasAirROI?'↻ Re-run AirROI':'📊 Build Proforma'}
-      </button>
-      ${isGoodOrOffer&&!p.dqd?`<button class="btn btn-out btn-sm" onclick="event.stopPropagation();toggleShortlist('${p.id}');">${p.sl?'★ Listed':'☆ Shortlist'}</button>`:''}
-      ${p.listingUrl?`<a href="${p.listingUrl}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" onclick="event.stopPropagation()">Listing ↗</a>`:''}
-      ${!p.dqd?`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();dqProp('${p.id}')">DQ</button>`:`<span class="tag rd">DQ'd</span>`}
-    </div>
-  </div>`;
+  return '<div class="pcard-row" onclick="openPropPanel(\'' + p.id + '\')" style="display:grid;grid-template-columns:1fr auto auto auto auto auto;align-items:center;gap:12px;padding:12px 16px;background:#fff;border:1px solid #e8e8e8;border-left:4px solid ' + (p.status==='good'?'var(--gr)':p.status==='needs-offer'?'var(--gold)':'#ddd') + ';border-radius:6px;cursor:pointer;transition:all .15s;margin-bottom:6px" onmouseover="this.style.background=\'#f8f9fa\';this.style.borderColor=\'#ccc\'" onmouseout="this.style.background=\'#fff\';this.style.borderColor=\'#e8e8e8\'">' +
+    '<div style="min-width:0">' +
+      '<div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.address + (p.listingUrl ? ' <a href=\"' + p.listingUrl + '\" target=\"_blank\" rel=\"noopener\" onclick=\"event.stopPropagation()\" style=\"font-size:10px;color:var(--gold);text-decoration:none;font-weight:500\">View ↗</a>' : '') + '</div>' +
+      '<div style="font-size:11px;color:#888">' + p.city + ', ' + p.state + ' ' + p.zip + ' · ' + p.beds + 'bd/' + p.baths + 'ba · ' + (p.sqft ? p.sqft.toLocaleString() : '?') + ' sqft · ' + (p.dom||0) + 'd on market</div>' +
+    '</div>' +
+    '<div style="text-align:right;min-width:80px"><div style="font-weight:700;font-size:14px">$' + (p.listPrice/1000).toFixed(0) + 'K</div><div style="font-size:10px;color:#888">List Price</div></div>' +
+    '<div style="text-align:right;min-width:75px"><div style="font-weight:700;font-size:14px;color:' + cocColor + '">' + cocLabel + '</div><div style="font-size:10px;color:#888">CoC</div></div>' +
+    '<div style="text-align:right;min-width:75px"><div style="font-weight:700;font-size:14px;color:' + (p.rev ? 'var(--gr)' : '#999') + '">' + revLabel + '</div><div style="font-size:10px;color:#888">Rev/yr</div></div>' +
+    '<span class="status-chip ' + sm.cls + '" style="font-size:10px;white-space:nowrap">' + sm.label + '</span>' +
+    '<div style="display:flex;gap:6px" onclick="event.stopPropagation()">' +
+      '<button class="btn btn-dark btn-sm" style="font-size:10px;padding:4px 8px" onclick="event.stopPropagation();openPropPanel(\'' + p.id + '\');setTimeout(()=>buildProforma(\'' + p.id + '\'),50)">' + (hasAirROI ? '↻ AirROI' : '📊 Proforma') + '</button>' +
+    '</div>' +
+  '</div>';
 }
+
 
 function toggleShortlist(id) {
   const i=APP.shortlist.indexOf(id);
