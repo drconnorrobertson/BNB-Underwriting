@@ -192,8 +192,6 @@ propCardHTML = function(p) {
   // Inject "Viewed X ago" into footer
   var viewed = getViewedAgo(p.id);
   if (viewed) {
-    html = html.replace(/<div class="pcard-footer"/, '<div class="pcard-footer"><span class="pcard-viewed">' + viewed + '</span> <div style="display:none"');
-    // simpler approach: add before first button in footer
     html = html.replace(/onclick="event\.stopPropagation\(\)">\s*<button/, 'onclick="event.stopPropagation()"><span class="pcard-viewed">' + viewed + '</span><button');
   }
 
