@@ -105,7 +105,7 @@ function prelimScore(prop, search) {
 
 async function fetchMarket(search) {
   const body = {
-    limit: 200, offset: 0, status: ['for_sale'],
+    limit: 500, offset: 0, status: ['for_sale'],
     sort: { direction: 'desc', field: 'list_date' },
     beds_min: search.beds_min,
     price_min: search.pmin || 300000,

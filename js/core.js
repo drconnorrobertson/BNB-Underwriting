@@ -137,7 +137,7 @@ function extractEst(raw) {
 }
 
 // ── RAPIDAPI PROXY ─────────────────────────────────────────────────────────────
-async function fetchRealProps(search, limit=200) {
+async function fetchRealProps(search, limit=500) {
   const body = {
     limit, offset:0, status:['for_sale'], sort:{direction:'desc',field:'list_date'},
     beds_min: search.beds_min, price_min: search.pmin||100000, price_max: search.pmax||2000000,

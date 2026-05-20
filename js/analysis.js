@@ -44,7 +44,7 @@ async function loadSearchProps(searchId) {
   if (!search) return;
   ST(`Loading listings - ${search.name}...`);
   try {
-    const results = await fetchRealProps(search, 200);
+    const results = await fetchRealProps(search, 500);
     if (results.length > 0) {
       const existing = APP.props[searchId] || [];
       const existingMap = Object.fromEntries(existing.map(p => [p.propertyId || p.id, p]));
@@ -87,7 +87,7 @@ async function loadAllSearches() {
     const s = APP.searches[i];
     if (btn) btn.textContent = `Loading ${i + 1}/${APP.searches.length}...`;
     try {
-      const results = await fetchRealProps(s, 200);
+      const results = await fetchRealProps(s, 500);
       if (results.length > 0) {
         results.forEach(r => { r.prelim = prelimScreen(r, s); });
         APP.props[s.id] = results; total += results.length;
