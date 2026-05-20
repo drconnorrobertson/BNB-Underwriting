@@ -124,7 +124,7 @@
             <div class="view" id="good">
               <div style="padding: 20px;">
                 <h2 class="heading-h2">Good Deals</h2>
-                <div id="propGrid"></div>
+                <div id="goodGrid" class="prop-grid"></div>
               </div>
             </div>
 
@@ -132,7 +132,7 @@
             <div class="view" id="offer">
               <div style="padding: 20px;">
                 <h2 class="heading-h2">Needs Offer</h2>
-                <div id="propGrid"></div>
+                <div id="offerGrid" class="prop-grid"></div>
               </div>
             </div>
 

@@ -101,10 +101,12 @@ function propCardHTML(p) {
   const revLabel=p.isPrelim&&!hasAirROI?`~${fmK(p.rev)}/yr est.`:fmK(p.rev);
   const offerPrice=a?.classification?.viablePrice;
 
+  const phIcon = {good:'✓ Good Deal','needs-offer':'⚡ Offer',prelim:'◎ Prelim',dq:'✗ DQ',unscored:'◯'}[p.status]||'';
+  const phTypeIcon = p.beds >= 5 ? '<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9h.01"/><path d="M9 12h.01"/><path d="M9 15h.01"/><path d="M9 18h.01"/></svg>' : '<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
   return `<div class="pcard ${p.status}" onclick="openPropPanel('${p.id}')">
     ${p.photo
-      ? `<img class="pcard-img" src="${p.photo}" loading="lazy" onerror="this.outerHTML='<div class=pcard-img-ph>🏠</div>'"/>`
-      : `<div class="pcard-img-ph">🏠</div>`}
+      ? `<img class="pcard-img" src="${p.photo}" loading="lazy" onerror="this.outerHTML='<div class=pcard-img-ph>${phTypeIcon}</div>'"/>`
+      : `<div class="pcard-img-ph">${phTypeIcon}<span style="position:absolute;bottom:10px;left:14px;font-size:11px;font-weight:600;color:rgba(255,255,255,.45);letter-spacing:.5px">${p.beds}bd · ${p.baths}ba · ${fmK(p.listPrice)}</span></div>`}
     <div class="pcard-body">
       <div class="pcard-head">
         <div>
