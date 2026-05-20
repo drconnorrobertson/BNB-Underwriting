@@ -323,6 +323,17 @@
       if (window.updateApiStats) updateApiStats();
       if (window.runPrelimAll) runPrelimAll();
       if (window.showOnboarding) showOnboarding();
+
+      // Auto-refresh if data has no photos (seed data is stale)
+      setTimeout(() => {
+        const allProps = Object.values(APP.props).flat();
+        const hasPhotos = allProps.some(p => p && p.photo);
+        const isStale = allProps.length > 0 && allProps[0] && (Date.now() - (allProps[0].fetchedAt || 0)) > 86400000;
+        if ((!hasPhotos || isStale) && typeof loadAllSearches === "function") {
+          console.log("Data stale or missing photos -- auto-refreshing from API...");
+          loadAllSearches();
+        }
+      }, 2000);
       if (window.renderSavedSearches) renderSavedSearches();
       if (window.renderDQRulesPanel) renderDQRulesPanel();
     }
