@@ -62,7 +62,7 @@ async function loadSearchProps(searchId) {
         }
       });
       save();
-      ST(`Loaded ${results.length} listings for ${search.name}`);
+      if(window.updateLastUpdatedBar)updateLastUpdatedBar();ST(`Loaded ${results.length} listings for ${search.name}`);
       setTimeout(HIDE, 3000);
     } else {
       ST(`No listings returned for ${search.name}`);
@@ -97,7 +97,7 @@ async function loadAllSearches() {
   }
   save();
   if (btn) { btn.disabled = false; btn.textContent = '↻ Refresh'; }
-  ST(`Refreshed ${total} properties across ${APP.searches.length} markets`);
+  if(window.updateLastUpdatedBar)updateLastUpdatedBar();ST(`Refreshed ${total} properties across ${APP.searches.length} markets`);
   setTimeout(HIDE, 4000);
   if (typeof renderPropGrid === 'function') renderPropGrid();
   if (typeof updateNavCounts === 'function') updateNavCounts();

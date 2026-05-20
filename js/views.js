@@ -701,3 +701,40 @@ function showView(id) {
   }
   window.scrollTo({top:0,behavior:'smooth'});
 }
+
+// Last Updated display
+function updateLastUpdatedBar() {
+  const el = document.getElementById('lastUpdatedText');
+  if (!el) return;
+  const allProps = Object.values(APP.props).flat().filter(Boolean);
+  if (!allProps.length) {
+    el.textContent = 'No data loaded. Click Refresh to pull listings.';
+    return;
+  }
+  const latest = Math.max(...allProps.map(p => p.fetchedAt || 0));
+  if (!latest) {
+    el.textContent = 'Data age unknown. Click Refresh to update.';
+    return;
+  }
+  const now = Date.now();
+  const diff = now - latest;
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  const dateStr = new Date(latest).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
+  
+  let freshness = '';
+  let color = '#4a7ab5';
+  if (days >= 2) {
+    freshness = days + ' days ago -- data may be stale';
+    color = '#c53030';
+  } else if (hours >= 12) {
+    freshness = hours + ' hours ago';
+    color = '#b7791f';
+  } else {
+    freshness = hours > 0 ? hours + ' hours ago' : 'Just updated';
+    color = '#276749';
+  }
+  
+  el.innerHTML = 'Last updated: <b>' + dateStr + '</b> (' + freshness + ') · ' + allProps.length + ' properties across ' + Object.keys(APP.props).length + ' markets';
+  el.style.color = color;
+}

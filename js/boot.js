@@ -2,6 +2,8 @@
       const appRoot = document.getElementById('appRoot');
 
       appRoot.innerHTML = `
+        <!-- LAST UPDATED BAR -->
+        <div id="lastUpdatedBar" style="background:#f0f7ff;border-bottom:1px solid #d0e3f7;padding:6px 16px;font-size:11px;color:#4a7ab5;display:flex;justify-content:space-between;align-items:center"><span id="lastUpdatedText">Checking data freshness...</span><button class="btn btn-out btn-sm" style="font-size:10px;padding:3px 10px" onclick="loadAllSearches()">↻ Refresh Now</button></div>
         <!-- TOPBAR -->
         <div class="top">
           <div class="top-left">
@@ -322,6 +324,7 @@
       if (window.populateSearchFilter) populateSearchFilter();
       if (window.updateApiStats) updateApiStats();
       if (window.runPrelimAll) runPrelimAll();
+      if (window.updateLastUpdatedBar) setTimeout(updateLastUpdatedBar, 500);
       if (window.showOnboarding) showOnboarding();
 
       // Auto-refresh if data has no photos (seed data is stale)
