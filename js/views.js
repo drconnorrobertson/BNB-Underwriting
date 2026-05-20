@@ -1,4 +1,27 @@
 
+// Quick CoC estimator for properties without prelim screening
+function estimateQuickCoC(p) {
+  if (!p.listPrice || !p.estRevenue) return null;
+  const price = p.listPrice;
+  const down = price * 0.10;
+  const cc = price * 0.03;
+  const amenCost = 12000;
+  const totalCash = down + cc + amenCost;
+  const mort = price - down;
+  const rate = 0.065 / 12;
+  const n = 360;
+  const pi = mort * rate * Math.pow(1+rate, n) / (Math.pow(1+rate, n) - 1);
+  const taxMo = price * 0.011 / 12;
+  const insMo = price * 0.013 / 12;
+  const fixedMo = pi + taxMo + insMo + 80 + 80 + 140;
+  const gbrMo = p.estRevenue / 12;
+  const variableMo = gbrMo * 0.34 + 1500 + 220;
+  const ncfMo = gbrMo + 1500 - fixedMo - variableMo;
+  const ncfYr = ncfMo * 12;
+  return totalCash > 0 ? ncfYr / totalCash : null;
+}
+
+
 // Pagination
 var PAGE_SIZE = 24;
 var CURRENT_PAGE = 1;
@@ -25,8 +48,8 @@ function getAllProps() {
       else if (p.prelim?.prelim_status==='prelim_good'||p.prelim?.prelim_status==='good') status='good';
       else if (p.prelim?.prelim_status==='prelim_offer'||p.prelim?.prelim_status==='needs-offer') status='needs-offer';
       else if (p.prelim) status='needs-offer'; // Default screened properties to needs-offer, not pending
-      const coc = a?.better?.coc ?? p.prelim?.prelim_coc ?? null;
-      const rev = a?.better?.revenue ?? p.prelim?.prelim_revenue ?? null;
+      const coc = a?.better?.coc ?? p.prelim?.prelim_coc ?? (p.estRevenue ? estimateQuickCoC(p) : null);
+      const rev = a?.better?.revenue ?? p.prelim?.prelim_revenue ?? p.estRevenue ?? null;
       const isPrelim = !a && p.prelim;
       return {...p, analysis:a||null, status, coc, rev, isPrelim, sl, isAirROI,
         prelim_score: coc!=null ? coc : -99};
