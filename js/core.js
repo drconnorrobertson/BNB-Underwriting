@@ -175,6 +175,134 @@ function parseRapidProp(r, search) {
   };
 }
 
+
+
+// ── MARKET TREND & YoY PERFORMANCE ─────────────────────────────────────────────
+async function getMarketTrend(lat, lng, beds) {
+  // Get supply data for n-1, n, and n+1 bedroom counts
+  const bedCounts = [Math.max(1, beds-1), beds, Math.min(beds+1, 10)];
+  const results = {};
+  
+  for (const b of bedCounts) {
+    try {
+      const est = await airGet('/calculator/estimate?' + new URLSearchParams({
+        lat, lng, bedrooms: b, baths: Math.ceil(b*0.6), guests: Math.min(b*2, 16),
+        amenities: 'wifi,kitchen,washer,dryer,parking'
+      }));
+      results[b + 'bd'] = {
+        beds: b,
+        revenue: est.revenue || 0,
+        occupancy: est.occupancy || 0,
+        adr: est.average_daily_rate || 0,
+        totalListings: est.total_listings || est.comparable_listings?.length || 0,
+        comps: (est.comparable_listings || []).length,
+        p50Rev: est.percentiles?.revenue?.p50 || 0,
+        p75Rev: est.percentiles?.revenue?.p75 || 0,
+        p90Rev: est.percentiles?.revenue?.p90 || 0,
+      };
+    } catch(e) { results[b + 'bd'] = { beds: b, error: e.message }; }
+  }
+  return results;
+}
+
+async function getYoYPerformance(lat, lng, beds) {
+  // Compare current year estimates vs prior year using monthly distributions
+  try {
+    const est = await airGet('/calculator/estimate?' + new URLSearchParams({
+      lat, lng, bedrooms: beds, baths: Math.ceil(beds*0.6), guests: Math.min(beds*2, 16),
+      amenities: 'wifi,kitchen,washer,dryer,parking'
+    }));
+    
+    const monthly = est.monthly_revenue_distributions || [];
+    const comps = (est.comparable_listings || []).filter(c => {
+      const pm = c.performance_metrics || {};
+      return pm.ttm_revenue > 0;
+    });
+    
+    // Calculate YoY score from comps trailing performance
+    let totalCurrent = 0, totalPrior = 0, compCount = 0;
+    comps.forEach(c => {
+      const pm = c.performance_metrics || {};
+      if (pm.ttm_revenue && pm.prior_year_revenue) {
+        totalCurrent += pm.ttm_revenue;
+        totalPrior += pm.prior_year_revenue;
+        compCount++;
+      }
+    });
+    
+    const yoyGrowth = totalPrior > 0 ? ((totalCurrent - totalPrior) / totalPrior) : 0;
+    
+    // Score: 0-100 based on YoY growth
+    // -20% or worse = 0, 0% = 50, +20% or better = 100
+    const score = Math.min(100, Math.max(0, Math.round(50 + (yoyGrowth * 250))));
+    
+    let label, color;
+    if (score >= 75) { label = 'Strong Growth'; color = 'var(--gr)'; }
+    else if (score >= 55) { label = 'Growing'; color = '#4ade80'; }
+    else if (score >= 45) { label = 'Stable'; color = '#eab308'; }
+    else if (score >= 25) { label = 'Declining'; color = '#f97316'; }
+    else { label = 'Weak Market'; color = 'var(--rd)'; }
+    
+    return {
+      yoyGrowth,
+      score,
+      label,
+      color,
+      compCount,
+      totalCurrentRev: totalCurrent,
+      totalPriorRev: totalPrior,
+      avgCurrentRev: compCount > 0 ? Math.round(totalCurrent / compCount) : 0,
+      avgPriorRev: compCount > 0 ? Math.round(totalPrior / compCount) : 0,
+      monthly,
+      estRevenue: est.revenue || 0,
+    };
+  } catch(e) { return { score: null, label: 'No Data', color: '#999', error: e.message }; }
+}
+
+function formatMarketTrendHTML(trend, yoy, prop) {
+  if (!trend && !yoy) return '';
+  
+  let html = '<div style="border-top:2px solid var(--gold);padding:16px 20px;margin-top:8px">';
+  html += '<div style="font-weight:700;font-size:13px;margin-bottom:12px;color:var(--tx)">📊 Market Intelligence</div>';
+  
+  // YoY Performance Score
+  if (yoy && yoy.score !== null) {
+    html += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px;margin-bottom:12px">';
+    html += '<div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Revenue Performance Score</div>';
+    html += '<div style="display:flex;align-items:center;gap:12px">';
+    html += '<div style="font-size:32px;font-weight:800;color:' + yoy.color + '">' + yoy.score + '</div>';
+    html += '<div>';
+    html += '<div style="font-weight:600;color:' + yoy.color + '">' + yoy.label + '</div>';
+    html += '<div style="font-size:11px;color:#64748b">YoY: ' + (yoy.yoyGrowth >= 0 ? '+' : '') + (yoy.yoyGrowth * 100).toFixed(1) + '% | Based on ' + yoy.compCount + ' comps</div>';
+    if (yoy.avgCurrentRev) {
+      html += '<div style="font-size:11px;color:#64748b">Avg comp revenue: $' + (yoy.avgCurrentRev/1000).toFixed(0) + 'K this year vs $' + (yoy.avgPriorRev/1000).toFixed(0) + 'K last year</div>';
+    }
+    html += '</div></div></div>';
+  }
+  
+  // Market Supply Trend
+  if (trend) {
+    html += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px">';
+    html += '<div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Supply & Competition by Bedroom Count</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
+    Object.values(trend).forEach(t => {
+      if (t.error) return;
+      const isTarget = t.beds === prop.beds;
+      html += '<div style="text-align:center;padding:8px;border-radius:6px;' + (isTarget ? 'background:#eff6ff;border:1px solid #3b82f6' : 'background:#fff;border:1px solid #e2e8f0') + '">';
+      html += '<div style="font-size:10px;color:#64748b">' + t.beds + ' Bedroom' + (isTarget ? ' ★' : '') + '</div>';
+      html += '<div style="font-size:16px;font-weight:700;color:var(--tx)">' + t.comps + '</div>';
+      html += '<div style="font-size:9px;color:#94a3b8">active comps</div>';
+      html += '<div style="font-size:11px;font-weight:600;color:var(--gr);margin-top:4px">$' + (t.revenue/1000).toFixed(0) + 'K/yr</div>';
+      html += '<div style="font-size:9px;color:#94a3b8">' + (t.occupancy*100).toFixed(0) + '% occ | $' + Math.round(t.adr) + ' ADR</div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  }
+  
+  html += '</div>';
+  return html;
+}
+
 // ── PRELIM SCORING (no API calls - FREE) ──────────────────────────────────────
 const MARKET_REV_PER_BED = {
   PA:[12000,.60,280],TN:[14000,.55,320],GA:[13000,.57,290],SC:[11000,.60,250],

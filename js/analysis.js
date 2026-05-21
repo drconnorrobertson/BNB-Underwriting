@@ -105,6 +105,11 @@ async function loadAllSearches() {
 
 // ── AIRROI FULL ANALYSIS (runs on "Build Proforma" click ONLY) ────────────────
 async function buildProforma(propId) {
+  // Also kick off market intelligence in background (non-blocking)
+  const prop = Object.values(APP.props).flat().find(p=>p.id===propId);
+  if (prop && prop.lat && prop.lng) {
+    fetchMarketIntelligence(propId, prop).catch(e => console.warn('Market intel:', e));
+  }
   const prop = getAllProps().find(p => p.id === propId);
   if (!prop) return;
   const search = APP.searches.find(s => s.id === prop.searchId);
@@ -277,3 +282,30 @@ function regenMemo() {
 
 function copyMemo() { const t = G('memoPreview'); if (!t) return; navigator.clipboard.writeText(t.value); const b = G('copyMemoBtn'); if (b) { b.textContent = 'Copied!'; setTimeout(() => b.textContent = 'Copy Memo', 2000); } }
 function markSent() { const d = APP.dqLog.find(x => x.propId === APP.dqPropId); if (d) { d.memoSent = true; d.memoSentDate = Date.now(); } save(); G('dqModal')?.classList.remove('open'); if (typeof renderDQView === 'function') renderDQView(); }
+
+
+async function fetchMarketIntelligence(propId, prop) {
+  const el = document.getElementById('marketIntel_' + propId.replace(/[^a-zA-Z0-9]/g,'_'));
+  if (!el) {
+    // Wait for panel to render
+    await new Promise(r => setTimeout(r, 1500));
+  }
+  const target = document.getElementById('marketIntel_' + propId.replace(/[^a-zA-Z0-9]/g,'_'));
+  if (target) target.innerHTML = '<div style="padding:16px;color:#94a3b8;font-size:12px">Loading market intelligence...</div>';
+  
+  try {
+    const [trend, yoy] = await Promise.all([
+      typeof getMarketTrend === 'function' ? getMarketTrend(prop.lat, prop.lng, prop.beds) : null,
+      typeof getYoYPerformance === 'function' ? getYoYPerformance(prop.lat, prop.lng, prop.beds) : null,
+    ]);
+    
+    if (target && typeof formatMarketTrendHTML === 'function') {
+      target.innerHTML = formatMarketTrendHTML(trend, yoy, prop);
+    }
+    
+    // Store on the property for future reference
+    prop.marketIntel = { trend, yoy, fetchedAt: Date.now() };
+  } catch(e) {
+    if (target) target.innerHTML = '<div style="padding:16px;color:#f87171;font-size:12px">Market data unavailable: ' + e.message + '</div>';
+  }
+}

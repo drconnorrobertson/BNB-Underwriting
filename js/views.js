@@ -273,6 +273,10 @@ function openPropPanel(propId) {
   html+=renderComplianceHTML(comply,prop);
   html+=renderAmenPanelHTML(search?.tags);
   
+  // Market Intelligence section (loads async)
+  const safeId = propId.replace(/[^a-zA-Z0-9]/g, "_");
+  html += `<div id="marketIntel_${safeId}" style="margin:0 -20px"></div>`;
+
   body.innerHTML=html;
   initAmen(search?.tags);
   renderAllA();
