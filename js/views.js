@@ -699,6 +699,9 @@ function showView(id) {
       if(typeof renderSavedSearches==='function') renderSavedSearches();
       if(typeof renderDQRulesPanel==='function') renderDQRulesPanel();
       break;
+    case 'markets':
+      if(typeof renderMarketsDashboard==='function') renderMarketsDashboard();
+      break;
     case 'clients':
       if(typeof renderClientManagerView==='function') renderClientManagerView();
       break;
@@ -741,4 +744,211 @@ function updateLastUpdatedBar() {
   
   el.innerHTML = 'Last updated: <b>' + dateStr + '</b> (' + freshness + ') · ' + allProps.length + ' properties across ' + Object.keys(APP.props).length + ' markets';
   el.style.color = color;
+}
+
+// ── MARKETS INTELLIGENCE DASHBOARD ────────────────────────────────────────────
+var MARKETS_SORT_KEY = 'coc';
+var MARKETS_SORT_DIR = 'desc';
+
+function renderMarketsDashboard() {
+  var container = G('marketsDashboard');
+  if (!container) return;
+
+  // Gather all properties grouped by searchId
+  var allProps = getAllProps();
+  var searchMap = {};
+  APP.searches.forEach(function(s) { searchMap[s.id] = s; });
+
+  // Build market data
+  var markets = [];
+  var globalRevs = [];
+  var globalCoCs = [];
+
+  // Group props by searchId
+  var grouped = {};
+  allProps.forEach(function(p) {
+    if (!p.searchId) return;
+    if (!grouped[p.searchId]) grouped[p.searchId] = [];
+    grouped[p.searchId].push(p);
+  });
+
+  // Also include searches with 0 props
+  APP.searches.forEach(function(s) {
+    var props = grouped[s.id] || [];
+    var count = props.length;
+    var avgPrice = 0, avgRev = 0, avgCoC = 0, avgBeds = 0;
+    var revProps = props.filter(function(p) { return p.rev && p.rev > 0; });
+    var cocProps = props.filter(function(p) { return p.coc != null && p.coc !== -99; });
+
+    if (count > 0) {
+      avgPrice = props.reduce(function(s, p) { return s + (p.listPrice || 0); }, 0) / count;
+    }
+    if (revProps.length > 0) {
+      avgRev = revProps.reduce(function(s, p) { return s + p.rev; }, 0) / revProps.length;
+      globalRevs.push(avgRev);
+    }
+    if (cocProps.length > 0) {
+      avgCoC = cocProps.reduce(function(s, p) { return s + p.coc; }, 0) / cocProps.length;
+      globalCoCs.push(avgCoC);
+    }
+
+    var goodCount = props.filter(function(p) { return p.status === 'good'; }).length;
+    var offerCount = props.filter(function(p) { return p.status === 'needs-offer'; }).length;
+    var bestDeal = null;
+    if (cocProps.length > 0) {
+      bestDeal = cocProps.reduce(function(a, b) { return (a.coc || 0) > (b.coc || 0) ? a : b; });
+    }
+
+    markets.push({
+      id: s.id,
+      name: s.name || (s.city + ', ' + s.state),
+      city: s.city,
+      state: s.state,
+      tags: s.tags || [],
+      count: count,
+      avgPrice: avgPrice,
+      avgRev: avgRev,
+      avgCoC: avgCoC,
+      avgBeds: count > 0 ? props.reduce(function(s, p) { return s + (p.beds || 0); }, 0) / count : 0,
+      goodCount: goodCount,
+      offerCount: offerCount,
+      bestDeal: bestDeal,
+      revProps: revProps.length,
+      cocProps: cocProps.length
+    });
+  });
+
+  // Compute national average revenue for trend comparison
+  var nationalAvgRev = globalRevs.length > 0 ? globalRevs.reduce(function(a, b) { return a + b; }, 0) / globalRevs.length : 0;
+  var nationalAvgCoC = globalCoCs.length > 0 ? globalCoCs.reduce(function(a, b) { return a + b; }, 0) / globalCoCs.length : 0;
+
+  // Assign trend scores
+  markets.forEach(function(m) {
+    if (m.avgRev > 0 && nationalAvgRev > 0) {
+      var revRatio = m.avgRev / nationalAvgRev;
+      if (revRatio >= 1.10) { m.trend = 'up'; m.trendLabel = 'Strong'; m.trendColor = 'var(--gr)'; m.trendArrow = '▲'; m.rowClass = 'mkt-row-strong'; }
+      else if (revRatio >= 0.90) { m.trend = 'flat'; m.trendLabel = 'Stable'; m.trendColor = '#B45309'; m.trendArrow = '►'; m.rowClass = 'mkt-row-stable'; }
+      else { m.trend = 'down'; m.trendLabel = 'Below Avg'; m.trendColor = 'var(--rd)'; m.trendArrow = '▼'; m.rowClass = 'mkt-row-declining'; }
+    } else {
+      m.trend = 'none'; m.trendLabel = 'No Data'; m.trendColor = 'var(--tx4)'; m.trendArrow = '—'; m.rowClass = '';
+    }
+  });
+
+  // Sort markets
+  var sorted = markets.slice().sort(function(a, b) {
+    var dir = MARKETS_SORT_DIR === 'asc' ? 1 : -1;
+    switch (MARKETS_SORT_KEY) {
+      case 'name': return dir * a.name.localeCompare(b.name);
+      case 'count': return dir * (a.count - b.count);
+      case 'revenue': return dir * (a.avgRev - b.avgRev);
+      case 'coc': return dir * (a.avgCoC - b.avgCoC);
+      case 'trend':
+        var tOrd = { up: 3, flat: 2, down: 1, none: 0 };
+        return dir * ((tOrd[a.trend] || 0) - (tOrd[b.trend] || 0));
+      default: return dir * (a.avgCoC - b.avgCoC);
+    }
+  });
+
+  // Scorecard stats
+  var totalProps = allProps.length;
+  var marketsUp = markets.filter(function(m) { return m.trend === 'up'; }).length;
+  var marketsDown = markets.filter(function(m) { return m.trend === 'down'; }).length;
+  var marketsWithCoC = markets.filter(function(m) { return m.cocProps > 0; });
+  var bestMarket = marketsWithCoC.length > 0 ? marketsWithCoC.reduce(function(a, b) { return a.avgCoC > b.avgCoC ? a : b; }) : null;
+  var worstMarket = marketsWithCoC.length > 0 ? marketsWithCoC.reduce(function(a, b) { return a.avgCoC < b.avgCoC ? a : b; }) : null;
+  var portfolioCoC = globalCoCs.length > 0 ? globalCoCs.reduce(function(a, b) { return a + b; }, 0) / globalCoCs.length : 0;
+
+  var now = new Date();
+  var timestamp = now.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
+
+  // Build HTML
+  var html = '';
+
+  // Header
+  html += '<div class="mkt-header">';
+  html += '<div class="mkt-header-left">';
+  html += '<h2 class="heading-h2" style="margin:0">Market Intelligence</h2>';
+  html += '<div class="mkt-timestamp">Last analyzed: ' + timestamp + ' · ' + markets.length + ' markets · ' + totalProps + ' properties</div>';
+  html += '</div>';
+  html += '</div>';
+
+  // Scorecard
+  html += '<div class="mkt-scorecard">';
+  html += mkScorecard('Total Properties', totalProps.toLocaleString(), 'Across ' + markets.length + ' markets', 'var(--gold)');
+  html += mkScorecard('Markets Trending Up', marketsUp, 'Revenue above national avg', 'var(--gr)');
+  html += mkScorecard('Markets Trending Down', marketsDown, 'Revenue below national avg', 'var(--rd)');
+  html += mkScorecard('Best Market', bestMarket ? bestMarket.city + ', ' + bestMarket.state : 'N/A', bestMarket ? fpc(bestMarket.avgCoC * 100) + ' avg CoC' : '', 'var(--gr)');
+  html += mkScorecard('Weakest Market', worstMarket ? worstMarket.city + ', ' + worstMarket.state : 'N/A', worstMarket ? fpc(worstMarket.avgCoC * 100) + ' avg CoC' : '', 'var(--rd)');
+  html += mkScorecard('Portfolio Avg CoC', fpc(portfolioCoC * 100), 'Across all markets w/ data', portfolioCoC >= 0.10 ? 'var(--gr)' : portfolioCoC >= 0.07 ? 'var(--am)' : 'var(--rd)');
+  html += '</div>';
+
+  // Table
+  html += '<div class="mkt-table-wrap">';
+  html += '<table class="mkt-table">';
+  html += '<thead><tr>';
+  html += mkSortHeader('Market', 'name');
+  html += mkSortHeader('Listings', 'count');
+  html += mkSortHeader('Avg Revenue', 'revenue');
+  html += mkSortHeader('Avg CoC', 'coc');
+  html += mkSortHeader('Trend', 'trend');
+  html += '<th class="mkt-th">Good / Offer</th>';
+  html += '<th class="mkt-th">Tags</th>';
+  html += '</tr></thead>';
+  html += '<tbody>';
+
+  sorted.forEach(function(m, i) {
+    var cocColor = m.avgCoC >= 0.10 ? 'var(--gr)' : m.avgCoC >= 0.07 ? 'var(--am)' : m.avgCoC > 0 ? 'var(--rd)' : 'var(--tx4)';
+    var cocDisplay = m.cocProps > 0 ? fpc(m.avgCoC * 100) : '--';
+    var revDisplay = m.revProps > 0 ? '$' + Math.round(m.avgRev / 1000) + 'K' : '--';
+
+    html += '<tr class="mkt-row ' + m.rowClass + '" onclick="marketFilterToAll(\'' + m.id + '\')" title="Click to filter All view to this market">';
+    html += '<td class="mkt-td mkt-name-cell"><div class="mkt-name">' + m.city + ', ' + m.state + '</div><div class="mkt-subname">' + m.name + '</div></td>';
+    html += '<td class="mkt-td mkt-num">' + m.count + '</td>';
+    html += '<td class="mkt-td mkt-num" style="color:' + (m.revProps > 0 ? 'var(--gr)' : 'var(--tx4)') + ';font-weight:600">' + revDisplay + '</td>';
+    html += '<td class="mkt-td mkt-num" style="color:' + cocColor + ';font-weight:700">' + cocDisplay + '</td>';
+    html += '<td class="mkt-td mkt-trend" style="color:' + m.trendColor + '"><span class="mkt-trend-arrow">' + m.trendArrow + '</span> ' + m.trendLabel + '</td>';
+    html += '<td class="mkt-td mkt-num"><span style="color:var(--gr);font-weight:600">' + m.goodCount + '</span> / <span style="color:var(--am);font-weight:600">' + m.offerCount + '</span></td>';
+    html += '<td class="mkt-td mkt-tags">' + (m.tags || []).slice(0, 3).map(function(t) { return '<span class="mkt-tag">' + t + '</span>'; }).join('') + '</td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+
+  // Legend
+  html += '<div class="mkt-legend">';
+  html += '<span class="mkt-legend-item"><span class="mkt-legend-dot" style="background:var(--gr)"></span> Strong (Rev 10%+ above avg)</span>';
+  html += '<span class="mkt-legend-item"><span class="mkt-legend-dot" style="background:#B45309"></span> Stable (within 10% of avg)</span>';
+  html += '<span class="mkt-legend-item"><span class="mkt-legend-dot" style="background:var(--rd)"></span> Below Avg (Rev 10%+ below avg)</span>';
+  html += '<span class="mkt-legend-item"><span class="mkt-legend-dot" style="background:var(--tx4)"></span> No Data</span>';
+  html += '</div>';
+
+  container.innerHTML = html;
+}
+
+function mkScorecard(label, value, sub, color) {
+  return '<div class="mkt-sc-card"><div class="mkt-sc-value" style="color:' + color + '">' + value + '</div><div class="mkt-sc-label">' + label + '</div><div class="mkt-sc-sub">' + sub + '</div></div>';
+}
+
+function mkSortHeader(label, key) {
+  var isActive = MARKETS_SORT_KEY === key;
+  var arrow = isActive ? (MARKETS_SORT_DIR === 'asc' ? ' ▲' : ' ▼') : '';
+  return '<th class="mkt-th mkt-th-sort' + (isActive ? ' mkt-th-active' : '') + '" onclick="sortMarkets(\'' + key + '\')">' + label + arrow + '</th>';
+}
+
+function sortMarkets(key) {
+  if (MARKETS_SORT_KEY === key) {
+    MARKETS_SORT_DIR = MARKETS_SORT_DIR === 'desc' ? 'asc' : 'desc';
+  } else {
+    MARKETS_SORT_KEY = key;
+    MARKETS_SORT_DIR = (key === 'name') ? 'asc' : 'desc';
+  }
+  renderMarketsDashboard();
+}
+
+function marketFilterToAll(searchId) {
+  APP.filterSearchId = searchId;
+  var filterEl = G('searchFilter');
+  if (filterEl) filterEl.value = searchId;
+  CURRENT_PAGE = 1;
+  showView('all');
 }

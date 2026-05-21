@@ -42,6 +42,9 @@
             <button class="nav-tab" id="nav_searches" onclick="showView('searches')">
               Searches
             </button>
+            <button class="nav-tab" id="nav_markets" onclick="showView('markets')">
+              Markets
+            </button>
           </div>
 
           <div class="top-right">
@@ -185,6 +188,13 @@
                 <button class="btn btn-primary" onclick="openBuyBoxModal()" style="margin-bottom: 20px;">+ New Buy Box</button>
                 <div id="savedSearchesGrid"></div>
                 <div id="dqRulesPanel"></div>
+              </div>
+            </div>
+
+            <!-- MARKETS INTELLIGENCE VIEW -->
+            <div class="view" id="markets">
+              <div style="padding: 20px;">
+                <div id="marketsDashboard"></div>
               </div>
             </div>
 
