@@ -1,53 +1,39 @@
-// api/airroi.js - Vercel serverless proxy for AirROI API
-// Routes all AirROI calls through the server to bypass browser CORS restrictions
-
+// Same-origin AirROI proxy. Configure AIRROI_API_KEY in Vercel, never in source.
 export default async function handler(req, res) {
-  // CORS headers for browser requests
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const AIRROI_KEY = 'PVvRRJBXeB18yr8BQHY0V8iQbYzo7S965h4D6jYc';
-  const AIRROI_BASE = 'https://api.airroi.com';
+  const apiKey = process.env.AIRROI_API_KEY;
+  if (!apiKey) return res.status(503).json({ error: 'AirROI is not configured' });
 
-  // path comes as query param: ?path=/calculator/estimate&lat=...&bedrooms=...
-  const { path, ...params } = req.query;
+  const path = req.query?.path;
+  if (typeof path !== 'string' || path.length > 2048) {
+    return res.status(400).json({ error: 'Invalid path' });
+  }
 
-  if (!path) {
-    res.status(400).json({ error: 'Missing path parameter' });
-    return;
+  let url;
+  try {
+    url = new URL(path, 'https://api.airroi.com');
+  } catch {
+    return res.status(400).json({ error: 'Invalid path' });
+  }
+  if (url.origin !== 'https://api.airroi.com' || url.pathname !== '/calculator/estimate') {
+    return res.status(400).json({ error: 'Unsupported AirROI endpoint' });
+  }
+
+  for (const [name, value] of Object.entries(req.query || {})) {
+    if (name !== 'path' && typeof value === 'string') url.searchParams.append(name, value);
   }
 
   try {
-    let url;
-    let options = {
-      headers: {
-        'X-API-KEY': AIRROI_KEY,
-        'Content-Type': 'application/json',
-      },
-    };
-
-    if (req.method === 'POST') {
-      url = `${AIRROI_BASE}${path}`;
-      options.method = 'POST';
-      options.body = JSON.stringify(req.body);
-    } else {
-      // Build query string from remaining params
-      const qs = new URLSearchParams(params).toString();
-      url = `${AIRROI_BASE}${path}${qs ? '?' + qs : ''}`;
-      options.method = 'GET';
-    }
-
-    const response = await fetch(url, options);
-    const data = await response.json();
-
-    res.status(response.status).json(data);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    const upstream = await fetch(url, { headers: { 'X-API-KEY': apiKey } });
+    const body = await upstream.text();
+    res.setHeader('Content-Type', (upstream.headers.get('content-type') || '').includes('application/json')
+      ? 'application/json' : 'text/plain; charset=utf-8');
+    return res.status(upstream.status).send(body);
+  } catch {
+    return res.status(502).json({ error: 'AirROI request failed' });
   }
 }

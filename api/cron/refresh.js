@@ -8,7 +8,7 @@ export const config = {
   maxDuration: 300, // 5 minute timeout for cron
 };
 
-const RAPIDAPI_KEY = 'ca56118692msh934ff5ce7b4982fp181ad8jsn3901adb598e3';
+const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY;
 
 // Market config — same as client-side SEARCHES_DEFAULT
 const SEARCHES = [
@@ -153,13 +153,18 @@ async function fetchMarket(search) {
 }
 
 export default async function handler(req, res) {
-  // Allow manual trigger via GET with secret, or automated cron
-  const authHeader = req.headers['authorization'];
-  const cronHeader = req.headers['x-vercel-cron'];
-  const manualKey = req.query?.key;
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-  if (!cronHeader && manualKey !== 'bnb-refresh-2024') {
+  // Vercel sends CRON_SECRET as an Authorization: Bearer header.
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret || req.headers.authorization !== 'Bearer ' + cronSecret) {
     return res.status(401).json({ error: 'Unauthorized' });
+  }
+  if (!RAPIDAPI_KEY) {
+    return res.status(503).json({ error: 'Property data is not configured' });
   }
 
   const startTime = Date.now();
