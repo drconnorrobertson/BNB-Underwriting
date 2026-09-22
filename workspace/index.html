@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>STR Investment Workspace | BNB Accelerator</title>
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="../">BNB <span>ACCELERATOR</span></a>
+    <a href="../">← Deal pipeline</a>
+  </header>
+  <main>
+    <div class="intro">
+      <p class="eyebrow">Investment workspace</p>
+      <h1>Pressure test a short term rental deal.</h1>
+      <p>Enter your assumptions, compare three operating scenarios, and save or export a report. Figures are estimates based only on the inputs shown here.</p>
+    </div>
+    <div class="layout">
+      <form id="dealForm" class="panel">
+        <h2>Deal assumptions</h2>
+        <p class="hint">Your work stays in this browser until you export it.</p>
+        <label>Deal name <input name="name" maxlength="100" value="New STR opportunity" required></label>
+        <div class="fields">
+          <label>Purchase price <span>$</span><input name="price" type="number" min="0" step="1000" value="500000" required></label>
+          <label>Down payment <span>%</span><input name="downPct" type="number" min="0" max="100" step="0.5" value="20" required></label>
+          <label>Interest rate <span>%</span><input name="ratePct" type="number" min="0" max="100" step="0.1" value="7" required></label>
+          <label>Loan term <span>years</span><input name="termYears" type="number" min="1" max="50" step="1" value="30" required></label>
+          <label>Closing costs <span>$</span><input name="closingCosts" type="number" min="0" step="100" value="15000" required></label>
+          <label>Startup and furnishing <span>$</span><input name="startupCosts" type="number" min="0" step="100" value="35000" required></label>
+          <label>Annual fixed expenses <span>$</span><input name="fixedExpenses" type="number" min="0" step="100" value="18000" required></label>
+          <label>Variable expense share <span>% of revenue</span><input name="variablePct" type="number" min="0" max="100" step="0.5" value="25" required></label>
+          <label>Available nights <span>per year</span><input name="availableNights" type="number" min="1" max="365" step="1" value="365" required></label>
+        </div>
+        <details>
+          <summary>What goes into the numbers?</summary>
+          <p>Gross revenue = available nights × occupancy × average daily rate. Net operating income subtracts variable and fixed expenses. Cash flow also subtracts loan payments. Cash on cash return divides annual cash flow by down payment, closing costs, and startup costs. Taxes, appreciation, sale costs, and principal paydown are excluded.</p>
+        </details>
+      </form>
+      <section class="results" aria-labelledby="scenarioHeading">
+        <div class="sectionhead">
+          <div><p class="eyebrow">Compare outcomes</p><h2 id="scenarioHeading">Three scenarios</h2></div>
+          <p>Adjust occupancy and nightly rate for each case.</p>
+        </div>
+        <div id="scenarios" class="scenarios"></div>
+        <div class="actions">
+          <button id="saveBtn" type="button">Save in this browser</button>
+          <button id="exportBtn" type="button" class="secondary">Export JSON</button>
+          <button id="printBtn" type="button" class="secondary">Print / PDF</button>
+          <button id="resetBtn" type="button" class="textbutton">Reset</button>
+        </div>
+        <p id="status" role="status" aria-live="polite"></p>
+        <p class="fineprint">This is an underwriting aid, not an appraisal, lender quote, tax projection, or investment recommendation. Verify revenue, expenses, financing, and local STR rules independently.</p>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
