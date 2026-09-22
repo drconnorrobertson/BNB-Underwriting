@@ -31,6 +31,10 @@ No build step. Static HTML/JS. Connect repo to Vercel and deploy.
 
 Open /workspace/ to compare conservative, base, and upside scenarios using your own purchase, financing, revenue, and expense assumptions. The calculator runs entirely in the browser. Save uses local browser storage; Export JSON and Print/PDF let you keep a copy. It does not call the AirROI or property APIs and does not make claims about a property’s actual performance.
 
-## Credential handling
+## Credential handling and deployment
 
-The client bundle must contain no API keys. Configure AIRROI_API_KEY and RAPIDAPI_KEY only as server-side Vercel environment variables for the existing API proxies. Rotate any keys that appeared in earlier public commits; removing them from current files cannot revoke historical copies.
+The client bundle contains no API keys. Configure `AIRROI_API_KEY` and `RAPIDAPI_KEY` as server-side Vercel environment variables. Configure a random `CRON_SECRET` (at least 16 characters) for the scheduled refresh route. Set them for each deployment environment that needs the API, then redeploy; existing deployments do not pick up new values.
+
+Rotate the AirROI and RapidAPI keys that appeared in public commits. Removing literals from the current branch does not revoke historical copies. Check and retire old Vercel deployment URLs that still contain those credentials.
+
+The same-origin API routes call paid upstream services and do not authenticate visitors. Before enabling either key on a public deployment, protect the deployment or add authenticated access and rate limits to these routes. Wildcard CORS headers were removed, but CORS does not prevent direct requests.
