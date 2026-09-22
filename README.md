@@ -4,11 +4,7 @@ Good / Better / Best income projections for short-term rental properties, powere
 
 ## What It Does
 
-Enter a property address and bedroom/bathroom count. The tool runs 6 AirROI API calls and returns:
-
-- **Good / Better / Best** annual revenue, occupancy, ADR, and monthly income
-- **Market context** — occupancy, ADR, RevPAR, active listing count
-- **15 comparable properties** with TTM performance data
+Screen property listings with RapidAPI and run Good / Better / Best AirROI estimate scenarios for a selected property. The current AirROI proxy permits only `GET /calculator/estimate`.
 
 ## Amenity Tiers
 
@@ -22,10 +18,8 @@ No build step. Static HTML/JS. Connect repo to Vercel and deploy.
 
 ## API Endpoints Used
 
-- GET /markets/lookup
-- GET /calculator/estimate x3 (Good / Better / Best)
-- GET /listings/comparables
-- POST /markets/metrics
+- AirROI `GET /calculator/estimate` for scenario estimates
+- RapidAPI `POST /properties/v3/list` for property searches and scheduled refresh
 
 ## STR Investment Workspace
 
