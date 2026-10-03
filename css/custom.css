@@ -111,3 +111,15 @@
         gap: 8px !important;
     }
 }
+
+/* Visual refinement 2026-10: preserve the existing brand, layout and content. */
+body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+h1, h2, h3 { text-wrap: balance; }
+p, blockquote { text-wrap: pretty; }
+:where(a, button, input, select, textarea):focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+:where(article, .content, .article-content) a { text-underline-offset: .2em; text-decoration-thickness: 1px; }
+:where(.hero-grid, .features-grid, .cards-grid, .grid, .footer-grid) > * { min-width: 0; }
+@media (max-width: 600px) { input, select, textarea { font-size: 16px; } :where(.hero-cta, .hero-actions, .cta-actions) { flex-wrap: wrap; row-gap: 12px; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; } }
+
+.btn, .btn-primary, .btn-secondary, .btn-gold { transition: background-color .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
