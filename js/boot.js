@@ -48,6 +48,7 @@
           </div>
 
           <div class="top-right">
+            <a class="btn btn-out" href="/workspace/">STR Workspace</a>
             <div class="api-pill">
               <span id="apiCalls">0</span> calls / \$<span id="apiSpent">0</span> / \$<span id="apiBalance">100</span>
             </div>
