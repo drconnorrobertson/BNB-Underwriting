@@ -32,5 +32,6 @@
       ]
     }
   ],
-  "buildCommand": "node scripts/brand-check.mjs ."
+  "buildCommand": "node scripts/prepare-static.mjs && node scripts/brand-check.mjs dist",
+  "outputDirectory": "dist"
 }
