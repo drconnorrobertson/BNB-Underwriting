@@ -1,28 +1,7 @@
-# BNB Underwriting — STR Income Analyzer
+# BNB Underwriting
 
-Good / Better / Best income projections for short-term rental properties, powered by the AirROI API.
+The manual `/workspace/` compares three input-based STR scenarios, saves in the browser, exports JSON and prints reports. No paid API calls are made there.
 
-## What It Does
+Live paid data endpoints return HTTP 503 while compromised historical credentials are rotated and authenticated, rate-limited access is implemented. No credential values belong in client or server source. Old Git history and deployment URLs may still contain compromised values; provider-side rotation is required. Scheduled paid refresh is disabled. Existing browser-saved pipeline data remains available.
 
-Enter a property address and bedroom/bathroom count. The tool runs 6 AirROI API calls and returns:
-
-- **Good / Better / Best** annual revenue, occupancy, ADR, and monthly income
-- **Market context** — occupancy, ADR, RevPAR, active listing count
-- **15 comparable properties** with TTM performance data
-
-## Amenity Tiers
-
-- **Good** — WiFi, kitchen, washer/dryer, A/C, parking
-- **Better** — Good + hot tub, patio, fire pit, game room
-- **Best** — Better + pool, EV charger, gym, sauna, beach access
-
-## Deploy
-
-No build step. Static HTML/JS. Connect repo to Vercel and deploy.
-
-## API Endpoints Used
-
-- GET /markets/lookup
-- GET /calculator/estimate x3 (Good / Better / Best)
-- GET /listings/comparables
-- POST /markets/metrics
+Build: `node scripts/prepare-static.mjs && node scripts/brand-check.mjs dist`.

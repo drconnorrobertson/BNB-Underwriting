@@ -1,8 +1,6 @@
 'use strict';
 
 // ── API KEYS (server-side via Vercel proxy) ───────────────────────────────────
-const AIRROI_KEY   = 'PVvRRJBXeB18yr8BQHY0V8iQbYzo7S965h4D6jYc';
-const RAPIDAPI_KEY = 'ca56118692msh934ff5ce7b4982fp181ad8jsn3901adb598e3';
 const PROXY_BASE   = '';
 
 // ── CONSTANTS ──────────────────────────────────────────────────────────────────

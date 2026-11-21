@@ -14,7 +14,9 @@
           </div>
 
           <button class="hamburger-btn" onclick="toggleMobileNav()" aria-label="Menu">&#9776;</button>
+          <p role="status" style="font-size:16px;padding:8px">Live property data is temporarily unavailable. <a href="/workspace/">Use the manual investment workspace</a>. Saved browser data remains available.</p>
           <div class="top-nav">
+            <a class="nav-tab" href="/workspace/">Manual workspace</a>
             <button class="nav-tab active" id="nav_all" onclick="showView('all')">
               All <span class="pill" id="pill_all">0</span>
             </button>
