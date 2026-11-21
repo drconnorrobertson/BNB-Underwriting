@@ -111,7 +111,6 @@ function ERR(msg) { const e=G('eb'); if(!e)return; e.textContent=msg; e.classLis
 // ── AIRROI PROXY API ───────────────────────────────────────────────────────────
 async function airGet(path) {
   const r = await fetch(`${PROXY_BASE}/api/airroi?path=${encodeURIComponent(path)}`);
-  trackCall(1, 0.05);
   if (!r.ok) { const e=await r.json().catch(()=>{}); throw new Error(e?.error||e?.message||'AirROI '+r.status); }
   return r.json();
 }
