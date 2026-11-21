@@ -1009,3 +1009,11 @@ p, blockquote { text-wrap: pretty; }
 
 /* Honor reduced-motion preferences without repeating shortened animations. */
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-iteration-count: 1 !important; } }
+
+/* Phone layout: preserve the brand and readable native form controls. */
+@media(max-width:768px){
+ .top-left{min-width:0}
+ .brand-text{min-width:0;white-space:normal}
+ .brand-text .brand-detail{display:none}
+ .search-input,.toolbar-input,.filter-dropdown,.toolbar-sel{font-size:16px;min-height:44px}
+}

@@ -9,7 +9,7 @@
           <div class="top-left">
             <img src="https://bnbaccelerator.com/wp-content/uploads/2025/03/BNB_Accelerator_logo-150x77.png" alt="BNB Accelerator" class="brand-logo">
             <div class="brand-text">
-              BNB Accelerator <span>|</span> Deal Underwriting - All Markets
+              BNB Accelerator <span class="brand-detail">| Deal Underwriting - All Markets</span>
             </div>
           </div>
 
@@ -604,4 +604,3 @@
         bootApp();
       }
     });
-  
